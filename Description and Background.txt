@@ -1,7 +1,7 @@
 FLED
 
 Description:
-LED is an acronym for Light Emitting Diode. My goal for this little project is to create a control module multi colored light strips. The individuals module, running on an Arduino board, will be able to run as stand alone and or, while working together, as a single device. The module will be able to be preprogrammed to display certain effects when triggered by different preprogrammed events. 
+LED is an acronym for Light Emitting Diode. My goal for this little project is to create a control module multi colored light strips. The individual modules, running on an Arduino board, will be able to run as stand alone and or, while working together, as a single device. The module will be able to be preprogrammed to display certain effects when triggered by different preprogrammed events. 
 
 The first step in the project is to create a single working module.  It will need to be easily configured. It will need to be able to handle timed events, triggers events, calculated events, and possibly a combination of events triggers. 
 

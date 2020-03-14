@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.02C
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.03A
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: gi6$b*E>*q%;
 // *
 // ***************************************************************************************
@@ -57,6 +57,11 @@
 // *
 // ***************************************************************************************
 // *
+// *  V 0.03 _200314
+// *    - Corrected a few bugs.  Added a few capabilities.
+// *    - Added a simple switch monitor and animation routines.
+// *    - Set Up some fake triggers and events for testing.
+// *
 // *  V 0.02b _200313
 // *    - Dirty Birdy update:
 // *        The code is a big hot mess.  Nearly completely undocumented.  Crap is
@@ -64,7 +69,7 @@
 // *        and nothing is unorganized.  The thing is ...
 // *    - It works.
 // *    - Next step: clean this bird up to and get it ready for a stew.
-// *    0.02c   
+// *    0.02c
 // *    - Quickly added comments and started cleaning things up.
 // *    - Tested to see if it still runs as before.  Yep.  All good.
 // *
@@ -78,7 +83,24 @@
 
 #include <FastLED.h>
 
-// Structures
+// HARDWARE SETUP
+
+#define DATA_PIN    3
+//#define CLK_PIN     4       // If your LED_TYPE requires one.
+#define LED_TYPE    WS2812B
+#define COLOR_ORDER GRB
+#define NUM_LEDS    60
+
+#define BRIGHTNESS        96  // Using Example Code.  Max unknown
+#define FRAMES_PER_SECOND 120 // Will not be necessary, but keeping, for now, just in case.
+
+
+#define NUM_TIMED_EVENTS  10  // Untill I can remember how LL, this is being
+// hardcoded.
+
+// ***************************************************************************************
+// STRUCTURES
+// ***************************************************************************************
 
 // ---------------------------------------------------------------------------------------
 
@@ -86,6 +108,7 @@ struct light_path
 //  Create a light_path:
 //    Controls the animation of a single LED over time.  Path referes to path in time.
 //    If a light path is over written the previous animation will be lost.
+//    Maybe, if I ever need it, I will enable the ability to stack light paths.
 {
   unsigned long tmeSTARTTIME;
   unsigned long intDURATION;
@@ -95,7 +118,8 @@ struct light_path
   boolean booExpired = true;
   boolean booFirstRun = false;
 
-  void set(unsigned long tmeCurrentTime, unsigned long tmeStartInTime, unsigned long intDuration, byte bytAnimation, CRGB crgbDestinationColor)
+  void set(unsigned long tmeCurrentTime, unsigned long tmeStartInTime,
+           unsigned long intDuration, byte bytAnimation, CRGB crgbDestinationColor)
   //  Setup proces to prepare an animation to start at a future time.
   //
   //  Parameters:
@@ -180,6 +204,7 @@ struct light_path
           } // END CASE 1
         case 2:
           // Pulse Animation Path
+          // This can be done beter with a simple ABS function.
           {
             if (tmeCurrentTime >= tmeSTARTTIME + intDURATION)
             {
@@ -228,16 +253,22 @@ struct timed_event
   CRGB crgbCOLORDEST;;
   int intSTARTPOS;
   int intENDPOS;
+  boolean booREPEAT;
+
   boolean booExpired = true;
 
-  void set(light_path lpLightPaths[], unsigned long tmeCurrentTime, unsigned long tmeStartInTime, unsigned long intDuration, unsigned int intSpeed, byte bytAnimation, byte bytLEDAnimation, CRGB crgbColor, int intStartPos, int intEndPos)
+  void set(light_path lpLightPaths[], unsigned long tmeCurrentTime,
+           unsigned long tmeStartInTime, unsigned long intDuration, unsigned int intSpeed,
+           byte bytAnimation, byte bytLEDAnimation, CRGB crgbColor, int intStartPos,
+           int intEndPos, boolean booRepeat)
   //  Setup proces to prepare multiple LEDs to start at future time.
-  
+
   //  Create a light event:
   //  Parameters:
 
   //  LightPaths    - LightPath Array to be set.
-  //  CurrentTime   - For the cycle or actual real time of when the event is said to be created.
+  //  CurrentTime   - For the cycle or actual real time of when the event is said to be
+  //                  created.
   //  Start In Time - The delay or scheduled wait time after the event was created.
   //  Duration      - How fast, or how long the event will last.
   //  Routine       - 0 to 255.  Determines the event routine.
@@ -258,6 +289,8 @@ struct timed_event
     crgbCOLORDEST = crgbColor;
     intSTARTPOS = intStartPos;
     intENDPOS = intEndPos;
+    booREPEAT = booRepeat;
+
     booExpired = false;
   }
 
@@ -275,6 +308,18 @@ struct timed_event
     }
   }
 
+  void clear()
+  {
+    booExpired = true;
+  }
+
+  boolean is_expired()
+  //  Checks to see if the event has ran and can be over written.
+  //  Returns true if it can be recycled.
+  {
+    return booExpired;
+  }
+
   void execute(light_path lpLedArray[], unsigned long tmeCurrentTime)
   //  Sets all requested light paths, start to end position, to begin their animation
   //    at a future time.
@@ -283,7 +328,7 @@ struct timed_event
   //    0 - Clear:  Clears future event and sets to no future future.
   //    1 - Sweep:  Sets light paths for all LEDs from start to end posion.
   //                  Speed is the time difference in miliseconds between each adjacent
-  //                  light path.  
+  //                  light path.
   //                  Duration, destination color, and LED animation will also be passed
   //                  to its light path.
   {
@@ -295,105 +340,240 @@ struct timed_event
           booExpired = false;
         }
       case 1:
-        // Sweep Event
+        // Sweep Event - Can handle a reverse sweep.  But, is the a simpler way?
         {
           unsigned long tmeStart;
-          for (int x = intSTARTPOS; x <= intENDPOS; x++)
+          int pos;
+          int num;
+
+          if (intSTARTPOS <= intENDPOS)
+          {
+            num = intENDPOS - intSTARTPOS;
+          }
+          else
+          {
+            num = intSTARTPOS - intENDPOS;
+          }
+          for (int x = 0; x <= num; x++)
           {
             // Find Delay between leds
-            if (intSTARTPOS == intENDPOS)
-            {
-              tmeStart = tmeSTARTTIME;
-            }
-            else if (intSTARTPOS < intENDPOS)
+            if (intSTARTPOS <= intENDPOS)
             {
               tmeStart = tmeSTARTTIME + (x * intSPEED);
+              pos = x + intSTARTPOS;
             }
-            else if (intSTARTPOS > intENDPOS)
+            else // (intSTARTPOS > intENDPOS)
             {
-              tmeStart = tmeSTARTTIME + intSPEED - (x * intSPEED);
+              tmeStart = tmeSTARTTIME + (x * intSPEED);
+              pos = intSTARTPOS - x;
             }
 
-
-            //             tmeStart = tmeSTARTTIME + (x * 300);
-
-            //should I pass current or start time?
-            lpLedArray[x].set(tmeStart, 0, intDURATION, bytLEDANIMATION, crgbCOLORDEST);
+            lpLedArray[pos].set(tmeStart, 0, intDURATION, bytLEDANIMATION, crgbCOLORDEST);
           }
         }
     }
-    booExpired = true;
+
+    //  Check to see if this event repeats.
+    if (booREPEAT == false)
+    {
+      //  It doesn' to set it as expired.
+      booExpired = true;
+    }
+    else
+    {
+      //  It does repeat so reschedule it to when we know all the light Paths have been
+      //  complete, which is what I would love to do, but for now we will just go by the
+      //  we took to start the event:  Its duration.  Never mind. Got it.
+      //  (num of led * speed + duration)
+      tmeSTARTTIME = tmeCurrentTime + (abs(intENDPOS - intSTARTPOS) * intSPEED) +
+                     intDURATION;
+      //num of led * speed + duration
+    }
   }
 };
 
+// ---------------------------------------------------------------------------------------
+
+struct hardware_monitor
+//  Create a hardware :
+{
+  unsigned long tmeCHANGEDETECTEDTIME;
+  boolean booPREVCHANGEDETECTED;
+  unsigned long tmeLEEWAY;
+  boolean booVALUE;
+  //boolean booACTIVE;
+
+  void set(boolean booOpen, unsigned long tmeLeeWay)
+  {
+    tmeCHANGEDETECTEDTIME = millis();
+    tmeLEEWAY = tmeLeeWay;
+    booVALUE = booOpen;
+  }
+
+  boolean changed(boolean booOpen)
+  {
+    if (booVALUE == booOpen)
+    {
+      booPREVCHANGEDETECTED = false;
+      return false;
+    }
+    else if (booPREVCHANGEDETECTED == false)
+    {
+      tmeCHANGEDETECTEDTIME = millis;
+      booPREVCHANGEDETECTED = true;
+      return  false;
+    }
+    else if (millis() < tmeCHANGEDETECTEDTIME + tmeLEEWAY)
+    {
+      return false;
+    }
+    else
+    {
+      booVALUE = booOpen;
+      booPREVCHANGEDETECTED = false;
+      return true;
+    }
+  }
+};
+
+struct hardware_door
+{
+  hardware_monitor hwmSTATUS;
+};
 
 // ***************************************************************************************
+// FUNCTION AND PROCEDURES
+// ***************************************************************************************
 
+void vdClearAllTimedEvent(timed_event teEventList[])
+//  Sort through the timed event list a create an event at the first slot available.
+{
+  boolean booCreated = false;
+  for (int x = 0; x < NUM_TIMED_EVENTS; x++)
+  {
+    teEventList[x].clear();
+  }
+}
 
-// Hardware Setup
-#define DATA_PIN    3
-//#define CLK_PIN     4       // If your LED_TYPE requires one.
-#define LED_TYPE    WS2812B
-#define COLOR_ORDER GRB
-#define NUM_LEDS    60
+void vdCreateTimedEvent(timed_event teEventList[], light_path lpLPs[],
+                        unsigned long tmeCurrentTime, unsigned long tmeStartInTime,
+                        unsigned long intDuration, unsigned int intSpeed,
+                        byte bytAnimation, byte bytLEDAnimation, CRGB crgbColor,
+                        int intStartPos, int intEndPos, boolean booRepeat)
+//  Sort through the timed event list a create an event at the first slot available.
+{
+  boolean booCreated = false;
+  for (int x = 0; ((x < NUM_TIMED_EVENTS) && (booCreated == false)) ; x++)
+  {
+    if (teEventList[x].is_expired())
+    {
+      teEventList[x].set(lpLPs, tmeCurrentTime, tmeStartInTime, intDuration, intSpeed,
+                         bytAnimation, bytLEDAnimation, crgbColor, intStartPos, intEndPos, booRepeat);
+      booCreated = true;
+    }
+  }
+}
 
-#define BRIGHTNESS        96  // Using Example Code.  Max unknown
-#define FRAMES_PER_SECOND 120 // Will not be necessary, but keeping, for now, just in case.
+// --- ANIMATIONS ------------------------------------------------------------------------
 
+// PARAMETER REFFERENCE
 
-#define NUM_TIMED_EVENTS  10  // Untill I can remember how pointers work, this is being
-// hardcoded.
+//  Reference:
+//TIMED EVENT  PARAMETERS
+//light_path lpLightPaths[],
+//unsigned long tmeCurrentTime,
+//unsigned long tmeStartInTime,
+//unsigned long intDuration,
+//unsigned int intSpeed,
+//byte bytAnimation,
+//byte bytLEDAnimation,
+//CRGB crgbColor,
+//int intStartPos,
+//int intEndPos
 
+void vdPowerOnAnimation(timed_event teEventList[], light_path lpLPs[], unsigned long tmeCurrentTime)
+{
+  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 0000, 50, 2, 1, 2, CRGB(0, 0, 30), 0, 59, false);
+}
+
+void vdAlertAnimation(timed_event teEventList[], light_path lpLPs[], unsigned long tmeCurrentTime)
+{
+
+}
+
+void vdDoorOpenAnimation(timed_event teEventList[], light_path lpLPs[], unsigned long tmeCurrentTime)
+{
+  // Door Open Animation
+  //  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 1000, 500, 10, 1, 1, CRGB(25, 0, 0), 0, 59, false); // 1100
+  //
+  //  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 2300, 300, 1, 1, 2, CRGB(100, 100, 0), 0, 59, false); // 900
+  //  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 3300, 400, 4, 1, 2, CRGB(80, 80, 0), 0, 59, false); // 900
+  //  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 4300, 500, 6, 1, 2, CRGB(50, 50, 0), 0, 59, false); // 900
+  //  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 5300, 600, 10, 1, 2, CRGB(40, 30, 0), 0, 59, false); // 1200
+  //  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 6600, 1000, 30, 1, 2, CRGB(40, 20, 0), 0, 59, false); // 2800
+  //  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 9500, 1500, 30, 1, 2, CRGB(50, 50, 0), 0, 59, true); //
+
+  // or
+  //vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 0000, 500, 0, 1, 1, CRGB(0, 0, 0), 0, 59, false); // 1100
+  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 1000, 500, 10, 1, 1, CRGB(25, 0, 0), 0, 59, false); // 1100
+  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 3300, 400, 4, 1, 2, CRGB(80, 80, 0), 0, 59, false); // 900
+  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 4300, 500, 6, 1, 2, CRGB(50, 50, 0), 0, 59, false); // 900
+  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 5300, 600, 10, 1, 2, CRGB(40, 30, 0), 0, 59, false); // 1200
+  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 6600, 1000, 30, 1, 2, CRGB(128, 128, 0), 0, 59, false); // 2800
+  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), 29, 0, true); //
+  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), 30, 59, true); //
+}
+
+void vdDoorCloseAnimation(timed_event teEventList[], light_path lpLPs[], unsigned long tmeCurrentTime)
+{
+  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 0000, 500, 0, 1, 1, CRGB(0, 0, 50), 0, 59, false); // 500
+  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 0600, 500, 10, 1, 2, CRGB(100, 100, 50), 0, 59, false); // 1100
+  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 1700, 0, 0, 1, 1, CRGB(50, 25, 0), 0, 59, false);  // 0
+  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 1800, 3000, 0, 1, 1, CRGB(0, 0, 0), 0, 59, false);
+}
+
+void vdPacificaishAnimation(timed_event teEventList[], light_path lpLPs[], unsigned long tmeCurrentTime)
+{
+  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 1000, 500, 10, 1, 1, CRGB(0, 15, 25), 0, 59, false); // 1100
+  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 2000, 3500, 250, 1, 2, CRGB(40, 200, 160), 0, 15, true); // 900
+  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 2000, 3800, 220, 1, 2, CRGB(40, 200, 160), 16, 30, true); // 900
+  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 2000, 3600, 270, 1, 2, CRGB(40, 200, 160), 31, 45, true); // 900
+  vdCreateTimedEvent (teEventList, lpLPs, tmeCurrentTime, 2000, 3200, 200, 1, 2, CRGB(40, 200, 160), 46, 59, true); // 900
+}
 
 // ***************************************************************************************
-// --- Global Variables ---
+// MAIN
+// ***************************************************************************************
+// GLOBAL VARIABLES
 
+//  Light Strip Hardware
+CRGB hwLED[NUM_LEDS];
 
+// Light Strip Event System
 light_path lpLED[NUM_LEDS];
 timed_event tmeEvent[NUM_TIMED_EVENTS];
 
-CRGB hwLED[NUM_LEDS];
-//CRGB hwLEDs[NUM_LEDS];
+// Door Sensor
+boolean booFakeDoorSensor = false;
 
-// Some simple throwaway global varibles.
-int intX = 0;
+hardware_monitor hwDoor;
 
+// Onboard LED to signify data being sent to LED strip.
+const int ledPin =  LED_BUILTIN;
 
 // Delay less Loop Variables
 //    intRestTime defines the amount of time, in milliseconds, passed before another data
 //    read pass is performed and transmitted from the controller to the main system.
-
-unsigned long tmeCurrentMillis = millis();   
-
+unsigned long tmeCurrentMillis = millis();
 unsigned long tmePrevMillis = 0;
 int intRestTime = 0;             // Do not check for update until rest time is passed.
-boolean booLEDChanged = false;    // Indicating a led changed color value.
 
 // Enable Serial Monitor for testing
 //    Enabling booTest will slow the board time and enable the serial monitor to be read.
 const boolean booTest = false;
 
-
-// ***************************************************************************************
-//  Notes:
-//    EventTypes:
-//      byte 0 :  Clear Event
-//      byte 1 :  Set All to Color
-
-
-// ***************************************************************************************
-// EVENT TRIGGERS
-
-// Power On
-
-// Alert
-
-// Door Open
-
-// Door Close
-
-// ***************************************************************************************
-
+// ---------------------------------------------------------------------------------------
+// MAIN SETUP
 
 void setup()
 {
@@ -408,41 +588,18 @@ void setup()
   //  Serial.begin(9600);
   //}
 
-  // Startup Routines:
-  // Clear all lights and wait 2 seconds only to see if the lights are working.
-  fill_solid( &(hwLED[0]), NUM_LEDS, CRGB( 0, 0, 128) );
-  FastLED.show();
-  delay(100);
-  fill_solid( &(hwLED[0]), NUM_LEDS, CRGB( 0, 0, 0) );
-  FastLED.show();
-  delay(2000);
+  // Set Door
+  hwDoor.set(false, 500);
 
-  // Make sure we have the currentn time before we try any test animations.
+
+  // Boot Animation
+  // Make sure we have the current time before we try any test animations.
   tmeCurrentMillis = millis();
-  
-  // TEST ANIMATIONS DEFINED AT STARTUP
-
-  tmeEvent[0].set(lpLED, tmeCurrentMillis, 1000, 50, 10, 1, 1, CRGB(50, 0, 0), 1, 59);
-  tmeEvent[1].set(lpLED, tmeCurrentMillis, 4000, 250, 20, 1, 2, CRGB(50, 50, 0), 1, 59);
-  tmeEvent[2].set(lpLED, tmeCurrentMillis, 8000, 500, 30, 1, 2, CRGB(50, 50, 0), 1, 59);
-  tmeEvent[3].set(lpLED, tmeCurrentMillis, 12000, 1500, 40, 1, 2, CRGB(50, 50, 0), 1, 59);
-  tmeEvent[4].set(lpLED, tmeCurrentMillis, 16000, 2000, 50, 1, 2, CRGB(50, 50, 0), 1, 59);
-  //tmeEvent[2].set(lpLED, tmeCurrentMillis, 1200, 50, 10, 1, 1, CRGB(0, 0, 50), 1, 30);
-  //tmeEvent[3].set(lpLED, tmeCurrentMillis, 1300, 50, 10, 1, CRGB(50, 50, 50), 1, 30);
-  //tmeEvent[2].set(lpLED, tmeCurrentMillis, 2100, 50, 10, 1, CRGB(0, 0, 50), 9, 11);
-  //tmeEvent[3].set(lpLED, tmeCurrentMillis, 4000, 2000, 300, 1, CRGB(50, 0, 50), 12, 14);
-  //tmeEvent[4].set(lpLED, tmeCurrentMillis, 20000, 10000, 300, 1, CRGB(0, 0, 0), 7, 20);
-  //tmeEvent[5].set(lpLED, tmeCurrentMillis, 6000, 2000, 300, 1, CRGB(50, 0, 00), 18, 20);
-  //tmeEvent[6].set(lpLED, tmeCurrentMillis, 7000, 2000, 300, 1, 1, CRGB(50, 50, 50), 21, 23);
-  //tmeEvent[7].set(lpLED, tmeCurrentMillis, 8000, 2000, 300, 1, 1, CRGB(0, 0, 00), 24, 26);
-  //tmeEvent[8].set(lpLED, tmeCurrentMillis, 10000, 5000, 300, 1, 1, CRGB(0, 50, 00), 0, 14);
-  //tmeEvent[9].set(lpLED, tmeCurrentMillis, 12000, 300, 300, 1, 1, CRGB(0, 0, 0), 1, 30);
-  //tmeEvent[1].set(lpLED, tmeCurrentMillis, 11000, 500, 1, CRGB(50,50,00), 33, 35);
-  tmeEvent[9].set(lpLED, tmeCurrentMillis, 22000, 250, 1, 1, 1, CRGB(0, 0, 0), 1, 59);
-
+  vdPowerOnAnimation(tmeEvent, lpLED, tmeCurrentMillis);
 }
 
 // ---------------------------------------------------------------------------------------
+// MAIN LOOP
 
 void loop()
 //  Main Loop:
@@ -454,13 +611,44 @@ void loop()
 
   //  Get current time.  This will be our timeframe to work in.
   tmeCurrentMillis = millis();
-  
+
   // --- Begin of Delayless Loop ---
   if (tmeCurrentMillis - tmePrevMillis >= intRestTime)
   {
     tmePrevMillis = tmeCurrentMillis;
 
+    // --- TESTING AREA ---
+    // Create fake changes.
+    if ((tmeCurrentMillis > 5000) && (tmeCurrentMillis < 6000))
+    {
+      booFakeDoorSensor = true;
+    }
+    if ((tmeCurrentMillis > 20000) && (tmeCurrentMillis < 21000))
+    {
+      booFakeDoorSensor = false;
+    }
+    if ((tmeCurrentMillis > 25000) && (tmeCurrentMillis < 26000))
+    {
+        vdClearAllTimedEvent(tmeEvent);
+        vdPacificaishAnimation(tmeEvent, lpLED, tmeCurrentMillis);
+    }
+
+
     // --- Grabbing Data From Hardware inputs ---
+    // Check door for changes.
+    if (hwDoor.changed(booFakeDoorSensor == true))
+    {
+      if (booFakeDoorSensor == true)
+      {
+        vdClearAllTimedEvent(tmeEvent);
+        vdDoorOpenAnimation(tmeEvent, lpLED, tmeCurrentMillis);
+      }
+      else
+      {
+        vdClearAllTimedEvent(tmeEvent);
+        vdDoorCloseAnimation(tmeEvent, lpLED, tmeCurrentMillis);
+      }
+    }
 
     // --- Process Data From Hardware Inputs ---
 
@@ -489,12 +677,14 @@ void loop()
     // --- Execute LED Hardware Changes If Anything Was Updated ---
     if (booUpdate == true)
     {
-      // TEMPORARY CODE: FLASH LED 1 RED WHILE SOMETHING GOT UPDATED.   
-      hwLED[0] = CRGB(25, 0, 0);
+      //  Turn on onboad LED when communicating with LED Hardware.
+      digitalWrite(ledPin, HIGH);
+
+      //  Update LED Hardware with changes.
       FastLED.show();
-      //delay(2);
-      hwLED[0] = CRGB(0, 0, 0);
-      FastLED.show();
+
+      //  Turn off onboad LED when communication complete.
+      digitalWrite(ledPin, LOW);
     }
 
     // Debug Routines ---

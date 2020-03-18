@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.10A
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.10B
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: gi6$b*E>*q%;
 // *
 // ***************************************************************************************
@@ -57,13 +57,21 @@
 // *
 // ***************************************************************************************
 // *
-// *  V 0.01 _200318
-// *    - Rewrote the code when disosing of the LightPath methodology.  This freed up
+// *  V 0.10b _200318
+// *      - Got some rest.  Fixed a bunch of stuff.
+// *      - Seperated Dest Color to Dest 1 and Dest 2 to dither from start to end.
+// *      - Created Pixil Animation 3.  Same as flash but ends on Color 2.
+// *      - Seperated Event handling of to handle Pixel Animation 1 differently than
+// *          Pixel Animation 2 and 3.  Considering merging Pixel Anination 2 and 3
+// *          then getting around this seperation issue.
+// *
+// *  V 0.10 _200318
+// *    - Rewrote the code when disposing of the LightPath methodology.  This freed up
 // *        enough memory to allow 150 lights within 2k of memory.  I really dont like
 // *        This way of doing things.  It takes more overhead in a starting heap process
 // *        and its much more complex.  Maybe I'm just that I'm in a bad mood because it
 // *        looks so much messier and it took so efing long to debug, only to end up with
-// *        code that does the exact same thing, except worst.  Maybe its good.  I don't 
+// *        code that does the exact same thing, except worst.  Maybe its good.  I don't
 // *        know.  Had no choice.  Moving on.
 // *
 // *  V 0.03 _200314
@@ -122,7 +130,8 @@ struct timed_event
   unsigned int intSPEED;
   byte bytANIMATION;
   byte bytLEDANIMATION;
-  CRGB crgbCOLORDEST;;
+  CRGB crgbCOLORDEST1;
+  CRGB crgbCOLORDEST2;
   int intSTARTPOS;
   int intENDPOS;
   boolean booREPEAT;
@@ -132,8 +141,8 @@ struct timed_event
 
   void set(unsigned long tmeCurrentTime,
            unsigned long tmeStartInTime, unsigned long intDuration, unsigned int intSpeed,
-           byte bytAnimation, byte bytLEDAnimation, CRGB crgbColor, int intStartPos,
-           int intEndPos, boolean booRepeat)
+           byte bytAnimation, byte bytLEDAnimation, CRGB crgbColor1, CRGB crgbColor2,
+           int intStartPos, int intEndPos, boolean booRepeat)
   //  Setup proces to prepare multiple LEDs to start at future time.
 
   //  Create a light event:
@@ -159,7 +168,8 @@ struct timed_event
     intSPEED = intSpeed;
     bytANIMATION = bytAnimation;
     bytLEDANIMATION = bytLEDAnimation;
-    crgbCOLORDEST = crgbColor;
+    crgbCOLORDEST1 = crgbColor1;
+    crgbCOLORDEST2 = crgbColor2;
     intSTARTPOS = intStartPos;
     intENDPOS = intEndPos;
     booREPEAT = booRepeat;
@@ -194,7 +204,8 @@ struct timed_event
     return booEXPIRED;
   }
 
-  CRGB crgb_anim_color(CRGB crgbCOLORSTART, CRGB crgbColorDest, unsigned long tmeCurrentTime, unsigned long tmeAnimTime)
+  CRGB crgb_anim_color(CRGB crgbCSTart, CRGB crgbCDest1, CRGB crgbCDest2,
+                       unsigned long tmeCurrentTime, unsigned long tmeAnimTime)
   //  Returns a CRGB value of the single LED respective to what its value should
   //    be as it is in its time path.
 
@@ -219,15 +230,15 @@ struct timed_event
         {
           if (tmeCurrentTime >= tmeAnimTime + intDURATION)
           {
-            return crgbCOLORDEST;
+            return crgbCDest1;
           }
           else
           {
             float fltPower = (float)tmeElapsed / (float)intDURATION;
 
-            byte R = (fltPower * crgbCOLORDEST.r) + ((1 - fltPower) * crgbCOLORSTART.r);
-            byte G = (fltPower * crgbCOLORDEST.g) + ((1 - fltPower) * crgbCOLORSTART.g);
-            byte B = (fltPower * crgbCOLORDEST.b) + ((1 - fltPower) * crgbCOLORSTART.b);
+            byte R = (fltPower * crgbCDest1.r) + ((1 - fltPower) * crgbCSTart.r);
+            byte G = (fltPower * crgbCDest1.g) + ((1 - fltPower) * crgbCSTart.g);
+            byte B = (fltPower * crgbCDest1.b) + ((1 - fltPower) * crgbCSTart.b);
 
             return CRGB(R, G, B);
 
@@ -239,7 +250,7 @@ struct timed_event
         {
           if (tmeCurrentTime >= tmeAnimTime + intDURATION)
           {
-            return crgbCOLORSTART;
+            return crgbCSTart;
           }
           else
           {
@@ -252,18 +263,53 @@ struct timed_event
               fltPower = 1 - (((float)((tmeElapsed * 2) - intDURATION) / (float)intDURATION));
             }
 
-            byte R = (fltPower * crgbCOLORDEST.r) + ((1 - fltPower) * crgbCOLORSTART.r);
-            byte G = (fltPower * crgbCOLORDEST.g) + ((1 - fltPower) * crgbCOLORSTART.g);
-            byte B = (fltPower * crgbCOLORDEST.b) + ((1 - fltPower) * crgbCOLORSTART.b);
+            //  Swap to second color at mid point
+            byte R = (fltPower * crgbCDest1.r) + ((1 - fltPower) * crgbCSTart.r);
+            byte G = (fltPower * crgbCDest1.g) + ((1 - fltPower) * crgbCSTart.g);
+            byte B = (fltPower * crgbCDest1.b) + ((1 - fltPower) * crgbCSTart.b);
 
             return CRGB(R, G, B);
           }
         } // END CASE 2
+      case 3:
+        // Pulse Animation Path
+        // This can be done beter with a simple ABS function.
+        {
+          if (tmeCurrentTime >= tmeAnimTime + intDURATION)
+          {
+            return crgbCDest2;
+          }
+          else
+          {
+            CRGB crgbA;
+            CRGB crgbB;
+            //  Swap to second color and power down at mid point.
+            if ((tmeElapsed * 2) <= (intDURATION))
+            {
+              fltPower = (float)(tmeElapsed) * 2 / ((float)intDURATION);
+              crgbA = crgbCSTart;
+              crgbB = crgbCDest1;
+            }
+            else
+            {
+              fltPower = 1 - (((float)((tmeElapsed * 2) - intDURATION) / (float)intDURATION));
+              crgbA = crgbCDest2;
+              crgbB = crgbCDest1;
+            }
+
+            byte R = (fltPower * crgbB.r) + ((1 - fltPower) * crgbA.r);
+            byte G = (fltPower * crgbB.g) + ((1 - fltPower) * crgbA.g);
+            byte B = (fltPower * crgbB.b) + ((1 - fltPower) * crgbA.b);
+
+            return CRGB(R, G, B);
+          }
+        } // END CASE 3
     } // END CASE STATEMENT
 
   }
 
-  void execute(CRGB hwLEDArray[], CRGB hwLEDStartArray[], CRGB hwLEDDestArray[], unsigned long tmeCurrentTime)
+  //void execute(CRGB hwLEDArray[], CRGB hwLEDStartArray[], CRGB hwLEDDestArray[], unsigned long tmeCurrentTime)
+  void execute(CRGB hwLEDArray[], CRGB hwLEDStartArray[], unsigned long tmeCurrentTime)
   //  Sets all requested light paths, start to end position, to begin their animation
   //    at a future time.
 
@@ -283,12 +329,12 @@ struct timed_event
       for (int x = 0; x <= count; x++)
         if (intSTARTPOS <= intENDPOS)
         {
-          hwLEDDestArray[x + intSTARTPOS] = crgbCOLORDEST;
+          //hwLEDDestArray[x + intSTARTPOS] = crgbCOLORDEST;
           hwLEDStartArray[x + intSTARTPOS] = hwLEDArray[x + intSTARTPOS];
         }
         else
         {
-          hwLEDDestArray[x + intENDPOS] = crgbCOLORDEST;
+          //hwLEDDestArray[x + intENDPOS] = crgbCOLORDEST;
           hwLEDStartArray[x + intENDPOS] = hwLEDArray[x + intENDPOS];
         }
 
@@ -323,8 +369,21 @@ struct timed_event
 
             if (tmeCurrentTime >= tmeStartAnim)
             {
-              // Get value of light based one animation at current time.
-              hwLEDArray[pos] = crgb_anim_color(hwLEDStartArray[pos], hwLEDDestArray[pos], tmeCurrentTime, tmeStartAnim);
+              if (bytLEDANIMATION == 1 )
+              {
+                // Get value of light based one animation at current time.
+                float fltPower = (float)x / (float)count;
+
+                byte R = (fltPower * crgbCOLORDEST2.r) + ((1 - fltPower) * crgbCOLORDEST1.r);
+                byte G = (fltPower * crgbCOLORDEST2.g) + ((1 - fltPower) * crgbCOLORDEST1.g);
+                byte B = (fltPower * crgbCOLORDEST2.b) + ((1 - fltPower) * crgbCOLORDEST1.b);
+
+                hwLEDArray[pos] = crgb_anim_color(hwLEDStartArray[pos], CRGB(R, G, B), crgbCOLORDEST2, tmeCurrentTime, tmeStartAnim);
+              }
+              else
+              {
+                hwLEDArray[pos] = crgb_anim_color(hwLEDStartArray[pos], crgbCOLORDEST1, crgbCOLORDEST2, tmeCurrentTime, tmeStartAnim);
+              }
             }
           }
         }
@@ -419,8 +478,8 @@ void vdClearAllTimedEvent(timed_event teEventList[])
 void vdCreateTimedEvent(timed_event teEventList[],
                         unsigned long tmeCurrentTime, unsigned long tmeStartInTime,
                         unsigned long intDuration, unsigned int intSpeed,
-                        byte bytAnimation, byte bytLEDAnimation, CRGB crgbColor,
-                        int intStartPos, int intEndPos, boolean booRepeat)
+                        byte bytAnimation, byte bytLEDAnimation, CRGB crgbColor1,
+                        CRGB crgbColor2, int intStartPos, int intEndPos, boolean booRepeat)
 //  Sort through the timed event list a create an event at the first slot available.
 {
   boolean booCreated = false;
@@ -429,7 +488,7 @@ void vdCreateTimedEvent(timed_event teEventList[],
     if (teEventList[x].is_expired())
     {
       teEventList[x].set(tmeCurrentTime, tmeStartInTime, intDuration, intSpeed,
-                         bytAnimation, bytLEDAnimation, crgbColor, intStartPos, 
+                         bytAnimation, bytLEDAnimation, crgbColor1, crgbColor2, intStartPos,
                          intEndPos, booRepeat);
       booCreated = true;
     }
@@ -455,35 +514,14 @@ void vdCreateTimedEvent(timed_event teEventList[],
 
 void vdTESTFLASHAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
 {
-  //vdCreateTimedEvent (teEventList, tmeCurrentTime, 0000, 50, 50, 1, 2, CRGB(30, 30, 30), 10, 30, true);
-  //  vdCreateTimedEvent (teEventList, tmeCurrentTime, 50, 3000, 0, 1, 1, CRGB(0, 0, 50), 10, 15, false); // 500
-  //  vdCreateTimedEvent (teEventList, tmeCurrentTime, 0600, 500, 10, 1, 2, CRGB(100, 100, 50), 0, 59, false); // 1100
-  //  vdCreateTimedEvent (teEventList, tmeCurrentTime, 1700, 0, 0, 1, 1, CRGB(50, 25, 0), 0, 59, false);  // 0
-  //  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3000, 300, 1, 1, CRGB(0, 50, 0), 15, 10, false);
-
-//  vdCreateTimedEvent (teEventList, tmeCurrentTime, 0000, 3000, 0, 1, 1, CRGB(0, 0, 50), 0, 59, false);
-//  vdCreateTimedEvent (teEventList, tmeCurrentTime, 4000, 3000, 0, 1, 1, CRGB(0, 50, 0), 0, 59, false);
-//  vdCreateTimedEvent (teEventList, tmeCurrentTime, 8000, 3000, 0, 1, 1, CRGB(50, 0, 0), 0, 59, false);
-//  vdCreateTimedEvent (teEventList, tmeCurrentTime, 12000, 3000, 0, 1, 1, CRGB(0, 0, 0), 0, 59, false);
-
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 16000, 200, 2000, 1, 1, CRGB(25, 25, 0), 0, 10, false);
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 16000, 400, 3000, 1, 1, CRGB(0, 25, 25), 20, 11, false);
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 16000, 800, 500, 1, 1, CRGB(50, 50, 0), 30, 21, false);
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 16000, 1200, 1000, 1, 1, CRGB(0, 50, 50), 39, 31, false);
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 16000, 1600, 1500, 1, 1, CRGB(50, 0, 50), 41, 59, false);
-
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 20000, 400, 200, 1, 2, CRGB(25, 25, 25), 0, 15, true);
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 20000, 500, 200, 1, 2, CRGB(0, 0, 0), 25, 16, true);
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 20000, 800, 200, 1, 2, CRGB(0, 50, 50), 35, 26, true);
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 20000, 120, 200, 1, 2, CRGB(50, 0, 50), 45, 35, true);
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 20000, 1060, 200, 1, 2, CRGB(50, 50, 00), 46, 59, true);
-
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3000, 200, 1, 3, CRGB(100, 100, 100), CRGB(50, 0, 0), 10, 49, true);
 }
 void vdPowerOnAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
 {
   //vdCreateTimedEvent (teEventList, tmeCurrentTime, 0100, 750, 25, 1, 1, CRGB(0, 0, 50), 0, 59, false);
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 600, 20, 1, 2, CRGB(0, 0, 25), 0, 59, false);
-  //vdCreateTimedEvent (teEventList, tmeCurrentTime, 1700, 2000, 250, 1, 1, CRGB(0, 0, 0), 0, 59, false);
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 250, 5, 1, 3, CRGB(125, 125, 125), CRGB(0, 0, 25), 0, 59, false);
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 600, 0, 0, 1, 1, CRGB(0, 0, 25), CRGB(0, 0, 25), 0, 59, false);
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 700, 2000, 0, 1, 1, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 59, false);
 }
 
 void vdAlertAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
@@ -495,30 +533,32 @@ void vdDoorOpenAnimation(timed_event teEventList[], unsigned long tmeCurrentTime
 {
   // Door Open Animation
 
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 1000, 500, 10, 1, 1, CRGB(25, 0, 0), 0, 59, false); // 1100
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 3300, 400, 4, 1, 2, CRGB(80, 80, 0), 0, 59, false); // 900
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 4300, 500, 6, 1, 2, CRGB(50, 50, 0), 0, 59, false); // 900
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 5300, 600, 10, 1, 2, CRGB(40, 30, 0), 0, 59, false); // 1200
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 6600, 1000, 30, 1, 2, CRGB(128, 128, 0), 0, 59, false); // 2800
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), 29, 0, true); //
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), 30, 59, true); //
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 29, 0, false); // 1100
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 30, 59, false); // 1100
+  //vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(0, 0, 0), CRGB(25, 0, 0), 0, 59, false); // 1100
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 3300, 400, 4, 1, 2, CRGB(80, 80, 0), CRGB(80, 80, 0), 0, 59, false); // 900
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 4300, 500, 6, 1, 2, CRGB(50, 50, 0), CRGB(50, 50, 0), 0, 59, false); // 900
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 5300, 600, 10, 1, 2, CRGB(40, 30, 0), CRGB(40, 30, 0), 0, 59, false); // 1200
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 6600, 1000, 30, 1, 2, CRGB(128, 128, 0), CRGB(128, 128, 0), 0, 59, false); // 2800
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), 0, 29, true); //
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), 59, 30, true); //
 }
 
 void vdDoorCloseAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
 {
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 0000, 500, 0, 1, 1, CRGB(0, 0, 50), 0, 59, false); // 500
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 0600, 500, 10, 1, 2, CRGB(100, 100, 50), 0, 59, false); // 1100
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 1700, 0, 0, 1, 1, CRGB(50, 25, 0), 0, 59, false);  // 0
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 1800, 3000, 0, 1, 1, CRGB(0, 0, 0), 0, 59, false);
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 000, 100, 0, 1, 1, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 59, false); // 500
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 150, 500, 5, 1, 3, CRGB(255, 255, 0), CRGB(50, 25, 0), 0, 59, false);
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 1200, 0, 0, 1, 1, CRGB(50, 25, 0), CRGB(50, 25, 0), 0, 59, false);  // 0
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 1300, 3000, 0, 1, 1, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 59, false);
 }
 
 void vdPacificaishAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
 {
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 1000, 500, 10, 1, 1, CRGB(0, 15, 25), 0, 59, false); // 1100
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3500, 250, 1, 2, CRGB(40, 200, 160), 0, 15, true); // 900
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3800, 220, 1, 2, CRGB(40, 200, 160), 16, 30, true); // 900
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3600, 270, 1, 2, CRGB(40, 200, 160), 31, 45, true); // 900
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3200, 200, 1, 2, CRGB(40, 200, 160), 46, 59, true); // 900
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 1000, 500, 10, 1, 1, CRGB(0, 15, 25), CRGB(0, 15, 25), 0, 59, false); // 1100
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3500, 250, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 0, 15, true); // 900
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3800, 220, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 16, 30, true); // 900
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3600, 270, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 31, 45, true); // 900
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3200, 200, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 46, 59, true); // 900
 }
 
 // ***************************************************************************************
@@ -528,7 +568,7 @@ void vdPacificaishAnimation(timed_event teEventList[], unsigned long tmeCurrentT
 
 //  Light Strip Hardware
 CRGB hwLED[NUM_LEDS];
-CRGB hwLEDDEST[NUM_LEDS];
+//CRGB hwLEDDEST[NUM_LEDS];
 CRGB hwLEDSTART[NUM_LEDS];  // I cant stand this one but for now im keeping.
 
 // Light Strip Event System
@@ -647,7 +687,8 @@ void loop()
     {
       if (tmeEvent[x].is_ready(tmeCurrentMillis) == true)
       {
-        tmeEvent[x].execute(hwLED, hwLEDSTART, hwLEDDEST, tmeCurrentMillis);
+        //tmeEvent[x].execute(hwLED, hwLEDSTART, hwLEDDEST, tmeCurrentMillis);
+        tmeEvent[x].execute(hwLED, hwLEDSTART, tmeCurrentMillis);
 
         //  If we made it to this part of the code then we need to
         //    tell the LED hardware that it has a change to commit.

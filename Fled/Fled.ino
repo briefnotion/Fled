@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.10B
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.11A
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: gi6$b*E>*q%;
 // *
 // ***************************************************************************************
@@ -57,6 +57,13 @@
 // *
 // ***************************************************************************************
 // *
+// *  V 0.11 _200319
+// *      - Duplicated portions of the code to handle a second light strip on pin 4
+// *          that will run concurrently with the first light strip.  Testing ended just
+// *          short of running both light strips at the same time.  That was because,
+// *          even though I had a second light strip available, I ran out of power
+// *          feeds.
+// *          
 // *  V 0.10b _200318
 // *      - Got some rest.  Fixed a bunch of stuff.
 // *      - Seperated Dest Color to Dest 1 and Dest 2 to dither from start to end.
@@ -102,18 +109,21 @@
 
 // HARDWARE SETUP
 
-#define DATA_PIN    3
-//#define CLK_PIN     4       // If your LED_TYPE requires one.
-#define LED_TYPE    WS2812B
+#define DATA_PINs1    3       // Data Pin for Strip 1
+#define DATA_PINs2    4       // Data Pin for Strip 2
+//#define CLK_PIN     5       // If your LED_TYPE requires one.
+#define LED_TYPE    WS2812B   
 #define COLOR_ORDER GRB
-#define NUM_LEDS    60
+#define NUM_LEDSs1    60
+#define NUM_LEDSs2    60
 
 #define BRIGHTNESS        96  // Using Example Code.  Max unknown
 #define FRAMES_PER_SECOND 120 // Will not be necessary, but keeping, for now, just in case.
 
 
-#define NUM_TIMED_EVENTS  20  // Untill I can remember how LL, this is being
-// hardcoded.
+#define NUM_TIMED_EVENTS  10  // Untill I can remember how LL, this is being
+                              //  Also, total number of this will be multiplied by the
+                              //  amount of LED strips you have setup.  Watch your memory.
 
 // ***************************************************************************************
 // STRUCTURES
@@ -518,10 +528,14 @@ void vdTESTFLASHAnimation(timed_event teEventList[], unsigned long tmeCurrentTim
 }
 void vdPowerOnAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
 {
-  //vdCreateTimedEvent (teEventList, tmeCurrentTime, 0100, 750, 25, 1, 1, CRGB(0, 0, 50), 0, 59, false);
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 250, 5, 1, 3, CRGB(125, 125, 125), CRGB(0, 0, 25), 0, 59, false);
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 600, 0, 0, 1, 1, CRGB(0, 0, 25), CRGB(0, 0, 25), 0, 59, false);
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 700, 2000, 0, 1, 1, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 59, false);
+ //vdCreateTimedEvent (teEventList, tmeCurrentTime, 0100, 750, 25, 1, 1, CRGB(0, 0, 50), 0, 59, false);
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 250, 5, 1, 3, CRGB(125, 125, 125), CRGB(0, 0, 25), 0, 59, false);
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 600, 0, 0, 1, 1, CRGB(0, 0, 25), CRGB(0, 0, 25), 0, 59, false);
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 700, 2000, 0, 1, 1, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 59, false);
+
+  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 250, 5, 1, 3, CRGB(125, 125, 125), CRGB(0, 0, 25), 0, 119, false);
+  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 600, 0, 0, 1, 1, CRGB(0, 0, 25), CRGB(0, 0, 25), 0, 59, false);
+  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 700, 2000, 0, 1, 1, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 59, false);
 }
 
 void vdAlertAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
@@ -533,15 +547,24 @@ void vdDoorOpenAnimation(timed_event teEventList[], unsigned long tmeCurrentTime
 {
   // Door Open Animation
 
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 29, 0, false); // 1100
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 30, 59, false); // 1100
-  //vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(0, 0, 0), CRGB(25, 0, 0), 0, 59, false); // 1100
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 3300, 400, 4, 1, 2, CRGB(80, 80, 0), CRGB(80, 80, 0), 0, 59, false); // 900
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 4300, 500, 6, 1, 2, CRGB(50, 50, 0), CRGB(50, 50, 0), 0, 59, false); // 900
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 5300, 600, 10, 1, 2, CRGB(40, 30, 0), CRGB(40, 30, 0), 0, 59, false); // 1200
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 6600, 1000, 30, 1, 2, CRGB(128, 128, 0), CRGB(128, 128, 0), 0, 59, false); // 2800
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), 0, 29, true); //
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), 59, 30, true); //
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 29, 0, false); // 1100
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 30, 59, false); // 1100
+ //vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(0, 0, 0), CRGB(25, 0, 0), 0, 59, false); // 1100
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 3300, 400, 4, 1, 2, CRGB(80, 80, 0), CRGB(80, 80, 0), 0, 59, false); // 900
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 4300, 500, 6, 1, 2, CRGB(50, 50, 0), CRGB(50, 50, 0), 0, 59, false); // 900
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 5300, 600, 10, 1, 2, CRGB(40, 30, 0), CRGB(40, 30, 0), 0, 59, false); // 1200
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 6600, 1000, 30, 1, 2, CRGB(128, 128, 0), CRGB(128, 128, 0), 0, 59, false); // 2800
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), 0, 29, true); //
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), 59, 30, true); //
+
+  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 29, 0, false); // 1100
+  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 30, 119, false); // 1100
+  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 3300, 400, 4, 1, 2, CRGB(80, 80, 0), CRGB(80, 80, 0), 0, 119, false); // 900
+  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 4300, 500, 6, 1, 2, CRGB(50, 50, 0), CRGB(50, 50, 0), 0, 119, false); // 900
+  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 5300, 600, 10, 1, 2, CRGB(40, 30, 0), CRGB(40, 30, 0), 0, 119, false); // 1200
+  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 6600, 1000, 30, 1, 2, CRGB(128, 128, 0), CRGB(128, 128, 0), 0, 119, false); // 2800
+  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), 0, 59, true); //
+  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), 119, 60, true); //
 }
 
 void vdDoorCloseAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
@@ -559,6 +582,12 @@ void vdPacificaishAnimation(timed_event teEventList[], unsigned long tmeCurrentT
   vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3800, 220, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 16, 30, true); // 900
   vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3600, 270, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 31, 45, true); // 900
   vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3200, 200, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 46, 59, true); // 900
+
+  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 1000, 500, 10, 1, 1, CRGB(0, 15, 25), CRGB(0, 15, 25), 60, 119, false); // 1100
+  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3500, 250, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 59 + 0, 59 + 15, true); // 900
+  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3800, 220, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 59 + 16, 59 + 30, true); // 900
+  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3600, 270, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 59 + 31, 59 + 45, true); // 900
+  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3200, 200, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 59 + 46, 59 + 59, true); // 900
 }
 
 // ***************************************************************************************
@@ -567,17 +596,19 @@ void vdPacificaishAnimation(timed_event teEventList[], unsigned long tmeCurrentT
 // GLOBAL VARIABLES
 
 //  Light Strip Hardware
-CRGB hwLED[NUM_LEDS];
-//CRGB hwLEDDEST[NUM_LEDS];
-CRGB hwLEDSTART[NUM_LEDS];  // I cant stand this one but for now im keeping.
+CRGB hwLEDs1[NUM_LEDSs1];       // LED Strip 1 values.
+CRGB hwLEDs2[NUM_LEDSs2];       // LED Strip 2 values.
+
+CRGB hwLEDSTARTs1[NUM_LEDSs1];  // I cant stand this but its necessary at the time.
+CRGB hwLEDSTARTs2[NUM_LEDSs2];
 
 // Light Strip Event System
-timed_event tmeEvent[NUM_TIMED_EVENTS];
+timed_event tmeEvents1[NUM_TIMED_EVENTS];
+timed_event tmeEvents2[NUM_TIMED_EVENTS];
 
 // Door Sensor
-boolean booFakeDoorSensor = false;
-
 hardware_monitor hwDoor;
+boolean booFakeDoorSensor = false;
 
 // Onboard LED to signify data being sent to LED strip.
 const int ledPin =  LED_BUILTIN;
@@ -600,8 +631,8 @@ void setup()
 {
   // Prep and define Hardware.
 
-  FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(hwLED, NUM_LEDS).setCorrection(TypicalLEDStrip);
-  //hwLED.addLeds<LED_TYPE,DATA_PIN,CLK_PIN,COLOR_ORDER>leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE, DATA_PINs1, COLOR_ORDER>(hwLEDs1, NUM_LEDSs1).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE, DATA_PINs2, COLOR_ORDER>(hwLEDs2, NUM_LEDSs2).setCorrection(TypicalLEDStrip);
   LEDS.setBrightness(BRIGHTNESS);
 
   //if ((booTest == true)
@@ -616,8 +647,9 @@ void setup()
   // Boot Animation
   // Make sure we have the current time before we try any test animations.
   tmeCurrentMillis = millis();
-  vdPowerOnAnimation(tmeEvent, tmeCurrentMillis);
-
+  vdPowerOnAnimation(tmeEvents1, tmeCurrentMillis);
+  vdPowerOnAnimation(tmeEvents2, tmeCurrentMillis);
+  
   //test
   //vdTESTFLASHAnimation(tmeEvent, tmeCurrentMillis);
   //vdPacificaishAnimation(tmeEvent, tmeCurrentMillis);
@@ -634,6 +666,9 @@ void loop()
 {
 
   //  Only update the hardware when changes have been detected.
+  //    This vabiable will be checked at the end of the loop.  If nothing was updated,
+  //    the loop will just walk on past any hardware updates that would otherwise be
+  //    sent.
   boolean booUpdate = false;
 
   //  Get current time.  This will be our timeframe to work in.
@@ -645,7 +680,7 @@ void loop()
     tmePrevMillis = tmeCurrentMillis;
 
     // --- TESTING AREA ---
-    // Create fake changes.
+    // Create fake changes for like open and closing doors and things.
     if (true)
     {
       if ((tmeCurrentMillis > 5000) && (tmeCurrentMillis < 6000))
@@ -658,11 +693,10 @@ void loop()
       }
       if ((tmeCurrentMillis > 26000) && (tmeCurrentMillis < 27000))
       {
-        vdClearAllTimedEvent(tmeEvent);
-        vdPacificaishAnimation(tmeEvent, tmeCurrentMillis);
+        vdClearAllTimedEvent(tmeEvents1);
+        vdPacificaishAnimation(tmeEvents1, tmeCurrentMillis);
       }
     }
-
 
     // --- Grabbing Data From Hardware inputs ---
     // Check door for changes.
@@ -670,25 +704,33 @@ void loop()
     {
       if (booFakeDoorSensor == true)
       {
-        vdClearAllTimedEvent(tmeEvent);
-        vdDoorOpenAnimation(tmeEvent, tmeCurrentMillis);
+        vdClearAllTimedEvent(tmeEvents1);
+        vdDoorOpenAnimation(tmeEvents1, tmeCurrentMillis);
       }
       else
       {
-        vdClearAllTimedEvent(tmeEvent);
-        vdDoorCloseAnimation(tmeEvent, tmeCurrentMillis);
+        vdClearAllTimedEvent(tmeEvents1);
+        vdDoorCloseAnimation(tmeEvents1, tmeCurrentMillis);
       }
     }
 
-    // --- Process Data From Hardware Inputs ---
-
     // --- Check and Execute Timed Events That Are Ready ---
+
     for (int x = 0; x < NUM_TIMED_EVENTS; x++)
     {
-      if (tmeEvent[x].is_ready(tmeCurrentMillis) == true)
+      // Execute check for timed events for Strip 1
+      if (tmeEvents1[x].is_ready(tmeCurrentMillis) == true)
       {
-        //tmeEvent[x].execute(hwLED, hwLEDSTART, hwLEDDEST, tmeCurrentMillis);
-        tmeEvent[x].execute(hwLED, hwLEDSTART, tmeCurrentMillis);
+        tmeEvents1[x].execute(hwLEDs1, hwLEDSTARTs1, tmeCurrentMillis);
+ 
+        //  If we made it to this part of the code then we need to
+        //    tell the LED hardware that it has a change to commit.
+        booUpdate = true;
+      }
+      // Execute check for timed events for Strip 2
+      if (tmeEvents2[x].is_ready(tmeCurrentMillis) == true)
+      {
+        tmeEvents2[x].execute(hwLEDs2, hwLEDSTARTs2, tmeCurrentMillis);
 
         //  If we made it to this part of the code then we need to
         //    tell the LED hardware that it has a change to commit.
@@ -701,10 +743,8 @@ void loop()
     {
       //  Turn on onboad LED when communicating with LED Hardware.
       digitalWrite(ledPin, HIGH);
-
       //  Update LED Hardware with changes.
       FastLED.show();
-
       //  Turn off onboad LED when communication complete.
       digitalWrite(ledPin, LOW);
     }

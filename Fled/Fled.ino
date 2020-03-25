@@ -57,6 +57,13 @@
 // *
 // ***************************************************************************************
 // *
+// *  V 0.11b _200325
+// *      - Small changes made.  Preparing and installing hardware in test ship.
+// *      - Lost #2 of 3 Arduino boards because of a failure on my part to disconnect one  
+// *          of the power leads while updating.  Although it was not powered, a short
+// *          occured and the board was burnt.  I loved you little Nano, but I can't 
+// *          fix you.
+// *
 // *  V 0.11 _200319
 // *      - Duplicated portions of the code to handle a second light strip on pin 4
 // *          that will run concurrently with the first light strip.  Testing ended just
@@ -114,8 +121,11 @@
 //#define CLK_PIN     5       // If your LED_TYPE requires one.
 #define LED_TYPE    WS2812B   
 #define COLOR_ORDER GRB
-#define NUM_LEDSs1    60
+#define NUM_LEDSs1    73
 #define NUM_LEDSs2    60
+
+#define SWITCH_PINs1  8       // Hardware Open Close Door Sensor 1
+#define SWITCH_PINs2  9       // Hardware Open Close Door Sensor 1
 
 #define BRIGHTNESS        96  // Using Example Code.  Max unknown
 #define FRAMES_PER_SECOND 120 // Will not be necessary, but keeping, for now, just in case.
@@ -431,7 +441,6 @@ struct hardware_monitor
   boolean booPREVCHANGEDETECTED;
   unsigned long tmeLEEWAY;
   boolean booVALUE;
-  //boolean booACTIVE;
 
   void set(boolean booOpen, unsigned long tmeLeeWay)
   {
@@ -528,10 +537,10 @@ void vdTESTFLASHAnimation(timed_event teEventList[], unsigned long tmeCurrentTim
 }
 void vdPowerOnAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
 {
- //vdCreateTimedEvent (teEventList, tmeCurrentTime, 0100, 750, 25, 1, 1, CRGB(0, 0, 50), 0, 59, false);
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 250, 5, 1, 3, CRGB(125, 125, 125), CRGB(0, 0, 25), 0, 59, false);
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 600, 0, 0, 1, 1, CRGB(0, 0, 25), CRGB(0, 0, 25), 0, 59, false);
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 700, 2000, 0, 1, 1, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 59, false);
+ //vdCreateTimedEvent (teEventList, tmeCurrentTime, 0100, 750, 25, 1, 1, CRGB(0, 0, 50), 0, NUM_LEDSs1, false);
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 250, 5, 1, 3, CRGB(125, 125, 125), CRGB(0, 0, 25), 0, NUM_LEDSs1, false);
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 600, 0, 0, 1, 1, CRGB(0, 0, 25), CRGB(0, 0, 25), 0, NUM_LEDSs1, false);
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 700, 2000, 0, 1, 1, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, NUM_LEDSs1, false);
 
   // vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 250, 5, 1, 3, CRGB(125, 125, 125), CRGB(0, 0, 25), 0, 119, false);
   // vdCreateTimedEvent (teEventList, tmeCurrentTime, 600, 0, 0, 1, 1, CRGB(0, 0, 25), CRGB(0, 0, 25), 0, 59, false);
@@ -544,18 +553,18 @@ void vdAlertAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
 }
 
 void vdDoorOpenAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
-{
+{ 
   // Door Open Animation
 
  vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 29, 0, false); // 1100
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 30, 59, false); // 1100
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 30, NUM_LEDSs1, false); // 1100
  //vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(0, 0, 0), CRGB(25, 0, 0), 0, 59, false); // 1100
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 3300, 400, 4, 1, 2, CRGB(80, 80, 0), CRGB(80, 80, 0), 0, 59, false); // 900
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 4300, 500, 6, 1, 2, CRGB(50, 50, 0), CRGB(50, 50, 0), 0, 59, false); // 900
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 5300, 600, 10, 1, 2, CRGB(40, 30, 0), CRGB(40, 30, 0), 0, 59, false); // 1200
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 6600, 1000, 30, 1, 2, CRGB(128, 128, 0), CRGB(128, 128, 0), 0, 59, false); // 2800
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 3300, 400, 4, 1, 2, CRGB(80, 80, 0), CRGB(80, 80, 0), 0, NUM_LEDSs1, false); // 900
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 4300, 500, 6, 1, 2, CRGB(50, 50, 0), CRGB(50, 50, 0), 0, NUM_LEDSs1, false); // 900
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 5300, 600, 10, 1, 2, CRGB(40, 30, 0), CRGB(40, 30, 0), 0, NUM_LEDSs1, false); // 1200
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 6600, 1000, 30, 1, 2, CRGB(128, 128, 0), CRGB(128, 128, 0), 0, NUM_LEDSs1, false); // 2800
  vdCreateTimedEvent (teEventList, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), 0, 29, true); //
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), 59, 30, true); //
+ vdCreateTimedEvent (teEventList, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), NUM_LEDSs1, 30, true); //
 
   // vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 29, 0, false); // 1100
   // vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 30, 119, false); // 1100
@@ -607,8 +616,8 @@ timed_event tmeEvents1[NUM_TIMED_EVENTS];
 timed_event tmeEvents2[NUM_TIMED_EVENTS];
 
 // Door Sensor
-hardware_monitor hwDoor;
-boolean booFakeDoorSensor = false;
+hardware_monitor hwDoors1;
+hardware_monitor hwDoors2;
 
 // Onboard LED to signify data being sent to LED strip.
 const int ledPin =  LED_BUILTIN;
@@ -631,17 +640,22 @@ void setup()
 {
   // Prep and define Hardware.
 
+  // Define LED Strip.
   FastLED.addLeds<LED_TYPE, DATA_PINs1, COLOR_ORDER>(hwLEDs1, NUM_LEDSs1).setCorrection(TypicalLEDStrip);
   FastLED.addLeds<LED_TYPE, DATA_PINs2, COLOR_ORDER>(hwLEDs2, NUM_LEDSs2).setCorrection(TypicalLEDStrip);
   LEDS.setBrightness(BRIGHTNESS);
 
+  // Define Door Sensors.
+  pinMode(SWITCH_PINs1, INPUT);
+  pinMode(SWITCH_PINs2, INPUT);
+  
   //if ((booTest == true)
   //{
   //  Serial.begin(9600);
   //}
 
   // Set Door
-  hwDoor.set(false, 500);
+  hwDoors1.set(false, 500);
 
 
   // Boot Animation
@@ -681,28 +695,31 @@ void loop()
 
     // --- TESTING AREA ---
     // Create fake changes for like open and closing doors and things.
-    if (true)
-    {
-      if ((tmeCurrentMillis > 5000) && (tmeCurrentMillis < 6000))
-      {
-        booFakeDoorSensor = true;
-      }
-      if ((tmeCurrentMillis > 20000) && (tmeCurrentMillis < 21000))
-      {
-        booFakeDoorSensor = false;
-      }
-      if ((tmeCurrentMillis > 26000) && (tmeCurrentMillis < 27000))
-      {
-        vdClearAllTimedEvent(tmeEvents1);
-        vdPacificaishAnimation(tmeEvents1, tmeCurrentMillis);
-      }
-    }
+    // if (true)
+    // {
+      // if ((tmeCurrentMillis > 5000) && (tmeCurrentMillis < 6000))
+      // {
+        // booFakeDoorSensor = true;
+      // }
+      // if ((tmeCurrentMillis > 20000) && (tmeCurrentMillis < 21000))
+      // {
+        // booFakeDoorSensor = false;
+      // }
+      // if ((tmeCurrentMillis > 26000) && (tmeCurrentMillis < 27000))
+      // {
+        // vdClearAllTimedEvent(tmeEvents1);
+        // vdPacificaishAnimation(tmeEvents1, tmeCurrentMillis);
+      // }
+    // }
 
     // --- Grabbing Data From Hardware inputs ---
     // Check door for changes.
-    if (hwDoor.changed(booFakeDoorSensor == true))
+    
+    // Check door 1 for changes.
+    boolean booSensorReads1 = digitalRead(SWITCH_PINs1);
+    if (hwDoors1.changed(booSensorReads1))
     {
-      if (booFakeDoorSensor == true)
+      if (booSensorReads1 == HIGH)
       {
         vdClearAllTimedEvent(tmeEvents1);
         vdDoorOpenAnimation(tmeEvents1, tmeCurrentMillis);
@@ -714,6 +731,22 @@ void loop()
       }
     }
 
+    // Check door 2 for changes.
+    // boolean booSensorReads2 = !digitalRead(SWITCH_PINs2);
+    // if (hwDoors2.changed(booSensorReads2))
+    // {
+      // if (booSensorReads2 == HIGH)
+      // {
+        // vdClearAllTimedEvent(tmeEvents2);
+        // vdDoorOpenAnimation(tmeEvents2, tmeCurrentMillis);
+      // }
+      // else
+      // {
+        // vdClearAllTimedEvent(tmeEvents2);
+        // vdDoorCloseAnimation(tmeEvents2, tmeCurrentMillis);
+      // }
+    // }
+    
     // --- Check and Execute Timed Events That Are Ready ---
 
     for (int x = 0; x < NUM_TIMED_EVENTS; x++)

@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.11A
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.12A
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: gi6$b*E>*q%;
 // *
 // ***************************************************************************************
@@ -57,6 +57,12 @@
 // *
 // ***************************************************************************************
 // *
+// *  V 0.12 _200326
+// *      - Fine tuned the door animations till it was visually appealing to me.
+// *      - The behavior of the first state animation changed.  I cant get it to 
+// *          work like it was and the way it was prefered.  Hacked together and
+// *          ugly fix that I will just need to get rid of at a later time.
+// *       
 // *  V 0.11b _200325
 // *      - Small changes made.  Preparing and installing hardware in test ship.
 // *      - Lost #2 of 3 Arduino boards because of a failure on my part to disconnect one  
@@ -121,7 +127,7 @@
 //#define CLK_PIN     5       // If your LED_TYPE requires one.
 #define LED_TYPE    WS2812B   
 #define COLOR_ORDER GRB
-#define NUM_LEDSs1    73
+#define NUM_LEDSs1    71
 #define NUM_LEDSs2    60
 
 #define SWITCH_PINs1  8       // Hardware Open Close Door Sensor 1
@@ -439,46 +445,61 @@ struct hardware_monitor
 {
   unsigned long tmeCHANGEDETECTEDTIME;
   boolean booPREVCHANGEDETECTED;
-  unsigned long tmeLEEWAY;
+  unsigned int tmeLEEWAY;
   boolean booVALUE;
+  boolean booFIRSTRUN = true;
 
-  void set(boolean booOpen, unsigned long tmeLeeWay)
+  void set(boolean booValue, int tmeLeeWay)
   {
     tmeCHANGEDETECTEDTIME = millis();
     tmeLEEWAY = tmeLeeWay;
-    booVALUE = booOpen;
+    booVALUE = booValue;
+    booPREVCHANGEDETECTED = false;
   }
 
-  boolean changed(boolean booOpen)
+  boolean changed(boolean booValue)
   {
-    if (booVALUE == booOpen)
+    unsigned long tmeTme = millis();
+    
+    if (booFIRSTRUN == true)
+    {
+      booVALUE = booValue;
+      booPREVCHANGEDETECTED = false;
+      tmeCHANGEDETECTEDTIME = tmeTme;
+      booFIRSTRUN = false;
+      return false;
+    }  
+    else 
+    if (booVALUE == booValue)
     {
       booPREVCHANGEDETECTED = false;
       return false;
     }
     else if (booPREVCHANGEDETECTED == false)
     {
-      tmeCHANGEDETECTEDTIME = millis();
+      tmeCHANGEDETECTEDTIME = tmeTme;
       booPREVCHANGEDETECTED = true;
       return  false;
     }
-    else if (millis() < tmeCHANGEDETECTEDTIME + tmeLEEWAY)
+    else if (tmeTme < (tmeCHANGEDETECTEDTIME + tmeLEEWAY))
     {
       return false;
     }
     else
     {
-      booVALUE = booOpen;
+      booVALUE = booValue;
       booPREVCHANGEDETECTED = false;
+      tmeCHANGEDETECTEDTIME = tmeTme;
       return true;
     }
   }
 };
 
-struct hardware_door
-{
-  hardware_monitor hwmSTATUS;
-};
+
+// struct hardware_door
+// {
+  // hardware_monitor hwmSTATUS;
+// };
 
 // ***************************************************************************************
 // FUNCTION AND PROCEDURES
@@ -537,14 +558,17 @@ void vdTESTFLASHAnimation(timed_event teEventList[], unsigned long tmeCurrentTim
 }
 void vdPowerOnAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
 {
- //vdCreateTimedEvent (teEventList, tmeCurrentTime, 0100, 750, 25, 1, 1, CRGB(0, 0, 50), 0, NUM_LEDSs1, false);
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 250, 5, 1, 3, CRGB(125, 125, 125), CRGB(0, 0, 25), 0, NUM_LEDSs1, false);
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 600, 0, 0, 1, 1, CRGB(0, 0, 25), CRGB(0, 0, 25), 0, NUM_LEDSs1, false);
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 700, 2000, 0, 1, 1, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, NUM_LEDSs1, false);
-
-  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 250, 5, 1, 3, CRGB(125, 125, 125), CRGB(0, 0, 25), 0, 119, false);
-  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 600, 0, 0, 1, 1, CRGB(0, 0, 25), CRGB(0, 0, 25), 0, 59, false);
-  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 700, 2000, 0, 1, 1, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 59, false);
+  int intTm;
+  int intDur;
+  int intCt;
+  int intSp;
+  
+  // Pulse
+  intTm = 3000; intDur = 250; intSp = 5; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 3, CRGB(125, 125, 125), CRGB(0, 0, 25), NUM_LEDSs1-1 , 0, false); // 1100
+  // Clear
+  intTm = 15 + intTm + intDur + (intSp * intCt); intDur = 2000; intSp = 0; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, NUM_LEDSs1-1, false); // 900
 }
 
 void vdAlertAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
@@ -554,34 +578,57 @@ void vdAlertAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
 
 void vdDoorOpenAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
 { 
+  int intTm;
+  int intDur;
+  int intCt;
+  int intSp;
   // Door Open Animation
 
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 29, 0, false); // 1100
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 30, NUM_LEDSs1, false); // 1100
- //vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(0, 0, 0), CRGB(25, 0, 0), 0, 59, false); // 1100
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 3300, 400, 4, 1, 2, CRGB(80, 80, 0), CRGB(80, 80, 0), 0, NUM_LEDSs1, false); // 900
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 4300, 500, 6, 1, 2, CRGB(50, 50, 0), CRGB(50, 50, 0), 0, NUM_LEDSs1, false); // 900
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 5300, 600, 10, 1, 2, CRGB(40, 30, 0), CRGB(40, 30, 0), 0, NUM_LEDSs1, false); // 1200
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 6600, 1000, 30, 1, 2, CRGB(128, 128, 0), CRGB(128, 128, 0), 0, NUM_LEDSs1, false); // 2800
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), 0, 29, true); //
- vdCreateTimedEvent (teEventList, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), NUM_LEDSs1, 30, true); //
-
-  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 29, 0, false); // 1100
-  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 100, 500, 10, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 30, 119, false); // 1100
-  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 3300, 400, 4, 1, 2, CRGB(80, 80, 0), CRGB(80, 80, 0), 0, 119, false); // 900
-  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 4300, 500, 6, 1, 2, CRGB(50, 50, 0), CRGB(50, 50, 0), 0, 119, false); // 900
-  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 5300, 600, 10, 1, 2, CRGB(40, 30, 0), CRGB(40, 30, 0), 0, 119, false); // 1200
-  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 6600, 1000, 30, 1, 2, CRGB(128, 128, 0), CRGB(128, 128, 0), 0, 119, false); // 2800
-  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), 0, 59, true); //
-  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 9500, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), 119, 60, true); //
+  // Clear
+  intTm = 500; intDur = 500; intSp = 10; intCt = 60;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(25, 0, 0), CRGB(255, 255, 255), 15, 0, false); // 1100
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(25, 0, 0), CRGB(25, 0, 0), 55, 16, false); // 1100
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 56, NUM_LEDSs1-1, false); // 1100
+  // Flash
+  intTm = 15 + intTm + intDur + (intSp * intCt); intDur = 400; intSp = 1; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 2, CRGB(80, 80, 0), CRGB(80, 80, 0), 0, NUM_LEDSs1-1, false); // 900
+  intTm = 15 + intTm + intDur + (intSp * intCt); intDur = 400; intSp = 2; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 2, CRGB(80, 80, 0), CRGB(80, 80, 0), 0, NUM_LEDSs1-1, false); // 900
+  intTm = 15 + intTm + intDur + (intSp * intCt); intDur = 500; intSp = 6; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 2, CRGB(50, 50, 0), CRGB(50, 50, 0), 0, NUM_LEDSs1-1, false); // 900
+  intTm = 15 + intTm + intDur + (intSp * intCt); intDur = 600; intSp = 10; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 2, CRGB(40, 30, 0), CRGB(40, 30, 0), 0, NUM_LEDSs1-1, false); // 1200
+  intTm = 15 + intTm + intDur + (intSp * intCt); intDur = 1000; intSp = 30; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 2, CRGB(128, 128, 0), CRGB(128, 128, 0), 0, NUM_LEDSs1-1, false); // 2800
+  // Repeat Pulse
+  intTm = 15 + intTm + intDur + (intSp * intCt);
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), 0, 35, true); //
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), NUM_LEDSs1, 36, true); //
 }
 
 void vdDoorCloseAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
 {
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 000, 100, 0, 1, 1, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 59, false); // 500
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 150, 500, 5, 1, 3, CRGB(255, 255, 0), CRGB(50, 25, 0), 0, 59, false);
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 1200, 0, 0, 1, 1, CRGB(50, 25, 0), CRGB(50, 25, 0), 0, 59, false);  // 0
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 1300, 3000, 0, 1, 1, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 59, false);
+  int intTm;
+  int intDur;
+  int intCt;
+  int intSp;
+
+  // Clear
+  intTm = 100; intDur = 100; intSp = 0; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(25, 0, 0), CRGB(255, 255, 255), 15, 0, false); // 1100
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(25, 0, 0), CRGB(25, 0, 0), 55, 16, false); // 1100
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 56, NUM_LEDSs1-1, false); // 1100
+  // Set
+  intTm = 3000 + intTm + intDur + (intSp * intCt); intDur = 750; intSp = 30; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 3, CRGB(0, 255, 0), CRGB(0, 20, 25), 36, NUM_LEDSs1-1, false); // 900
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 3, CRGB(0, 255, 0), CRGB(0, 20, 25), 35, 0, false); // 900
+  intTm = 15 + intTm + intDur + (intSp * intCt); intDur = 1000; intSp = 0; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(0, 0, 0), CRGB(0, 20, 25), 0, 20, false);
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(0, 20, 25), CRGB(0, 20, 25), 21, 50, false);
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(0, 20, 25), CRGB(0, 0, 0), 51, NUM_LEDSs1-1, false);
+  intTm = 15 + intTm + intDur + (intSp * intCt); intDur = 5000; intSp = 0; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, NUM_LEDSs1-1, false); // 1200
+  
 }
 
 void vdPacificaishAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
@@ -592,11 +639,6 @@ void vdPacificaishAnimation(timed_event teEventList[], unsigned long tmeCurrentT
   vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3600, 270, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 31, 45, true); // 900
   vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3200, 200, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 46, 59, true); // 900
 
-  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 1000, 500, 10, 1, 1, CRGB(0, 15, 25), CRGB(0, 15, 25), 60, 119, false); // 1100
-  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3500, 250, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 59 + 0, 59 + 15, true); // 900
-  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3800, 220, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 59 + 16, 59 + 30, true); // 900
-  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3600, 270, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 59 + 31, 59 + 45, true); // 900
-  // vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3200, 200, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 59 + 46, 59 + 59, true); // 900
 }
 
 // ***************************************************************************************
@@ -617,7 +659,7 @@ timed_event tmeEvents2[NUM_TIMED_EVENTS];
 
 // Door Sensor
 hardware_monitor hwDoors1;
-hardware_monitor hwDoors2;
+//hardware_monitor hwDoors2;
 
 // Onboard LED to signify data being sent to LED strip.
 const int ledPin =  LED_BUILTIN;
@@ -655,20 +697,15 @@ void setup()
   //}
 
   // Set Door
-  hwDoors1.set(false, 500);
-
+  hwDoors1.set(SWITCH_PINs1, 500);
+  //hwDoors2.set(false, 100);
 
   // Boot Animation
   // Make sure we have the current time before we try any test animations.
   tmeCurrentMillis = millis();
   vdPowerOnAnimation(tmeEvents1, tmeCurrentMillis);
-  vdPowerOnAnimation(tmeEvents2, tmeCurrentMillis);
+  //vdPowerOnAnimation(tmeEvents2, tmeCurrentMillis);
   
-  //test
-  //vdTESTFLASHAnimation(tmeEvent, tmeCurrentMillis);
-  //vdPacificaishAnimation(tmeEvent, tmeCurrentMillis);
-  //vdDoorCloseAnimation(tmeEvent, tmeCurrentMillis);
-
 }
 
 // ---------------------------------------------------------------------------------------
@@ -693,43 +730,28 @@ void loop()
   {
     tmePrevMillis = tmeCurrentMillis;
 
-    // --- TESTING AREA ---
-    // Create fake changes for like open and closing doors and things.
-    // if (true)
-    // {
-      // if ((tmeCurrentMillis > 5000) && (tmeCurrentMillis < 6000))
-      // {
-        // booFakeDoorSensor = true;
-      // }
-      // if ((tmeCurrentMillis > 20000) && (tmeCurrentMillis < 21000))
-      // {
-        // booFakeDoorSensor = false;
-      // }
-      // if ((tmeCurrentMillis > 26000) && (tmeCurrentMillis < 27000))
-      // {
-        // vdClearAllTimedEvent(tmeEvents1);
-        // vdPacificaishAnimation(tmeEvents1, tmeCurrentMillis);
-      // }
-    // }
-
     // --- Grabbing Data From Hardware inputs ---
-    // Check door for changes.
+
+    // Give sensors time to adjust.
+    // if (tmeCurrentMillis > 5000)
+    // {
+      // Check door for changes.
     
-    // Check door 1 for changes.
-    boolean booSensorReads1 = digitalRead(SWITCH_PINs1);
-    if (hwDoors1.changed(booSensorReads1))
-    {
-      if (booSensorReads1 == HIGH)
+      // Check door 1 for changes.
+      boolean booSensorReads1 = digitalRead(SWITCH_PINs1);
+      if (hwDoors1.changed(booSensorReads1))
       {
-        vdClearAllTimedEvent(tmeEvents1);
-        vdDoorOpenAnimation(tmeEvents1, tmeCurrentMillis);
+        if (booSensorReads1 == HIGH)
+        {
+          vdClearAllTimedEvent(tmeEvents1);
+          vdDoorOpenAnimation(tmeEvents1, tmeCurrentMillis);
+        }
+        else
+        {
+          vdClearAllTimedEvent(tmeEvents1);
+          vdDoorCloseAnimation(tmeEvents1, tmeCurrentMillis);
+        }
       }
-      else
-      {
-        vdClearAllTimedEvent(tmeEvents1);
-        vdDoorCloseAnimation(tmeEvents1, tmeCurrentMillis);
-      }
-    }
 
     // Check door 2 for changes.
     // boolean booSensorReads2 = !digitalRead(SWITCH_PINs2);
@@ -746,6 +768,8 @@ void loop()
         // vdDoorCloseAnimation(tmeEvents2, tmeCurrentMillis);
       // }
     // }
+    //}
+
     
     // --- Check and Execute Timed Events That Are Ready ---
 

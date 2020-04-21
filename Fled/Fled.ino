@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.12A
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.13A
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: gi6$b*E>*q%;
 // *
 // ***************************************************************************************
@@ -56,6 +56,12 @@
 // *    https://github.com/briefnotion/Fled/blob/master/Description%20and%20Background.txt
 // *
 // ***************************************************************************************
+// *
+// *  V 0.13 _200420
+// *      - Been a month now because of the pandemic. Finally recieved a more spare parts.  
+// *      - Added some basic Animation Definitions to make things easyier to understand.
+// *      - Added a simple routine to calculate time delays in between event animations.
+// *      - Made some cosmetic changes to some of the animations.
 // *
 // *  V 0.12 _200326
 // *      - Fine tuned the door animations till it was visually appealing to me.
@@ -120,6 +126,16 @@
 
 #include <FastLED.h>
 
+// BASIC DEFINITIONS FOR EASY Reference
+
+// Event Animations
+#define AnEvClear     0
+#define AnEvSweep     1
+// Pixel Animations
+#define AnPiFade      1
+#define AnPiPulse     2
+#define AnPiPulseTo   3
+
 // HARDWARE SETUP
 
 #define DATA_PINs1    3       // Data Pin for Strip 1
@@ -137,7 +153,7 @@
 #define FRAMES_PER_SECOND 120 // Will not be necessary, but keeping, for now, just in case.
 
 
-#define NUM_TIMED_EVENTS  10  // Untill I can remember how LL, this is being
+#define NUM_TIMED_EVENTS  15  // Untill I can remember how LL, this is being
                               //  Also, total number of this will be multiplied by the
                               //  amount of LED strips you have setup.  Watch your memory.
 
@@ -441,7 +457,7 @@ struct timed_event
 // HARDWARE MONITOR
 
 struct hardware_monitor
-//  Create a hardware :
+//  Create a hardware switch or button varable type.
 {
   unsigned long tmeCHANGEDETECTEDTIME;
   boolean booPREVCHANGEDETECTED;
@@ -552,10 +568,19 @@ void vdCreateTimedEvent(timed_event teEventList[],
 //int intStartPos,
 //int intEndPos
 
+int intAnTmDly(int intTm, int intDur, int intCt, int intSp)
+// Calculate and return the next delay time based on duration of event, number of pixels, and animation
+//  speed of each pixel.
+//  Value in return statement is buffer time.
+{
+return (5 + intTm + intDur + (intSp * intCt));
+}
+
 void vdTESTFLASHAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
 {
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3000, 200, 1, 3, CRGB(100, 100, 100), CRGB(50, 0, 0), 10, 49, true);
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3000, 200, AnEvSweep, AnPiPulseTo, CRGB(100, 100, 100), CRGB(50, 0, 0), 10, 49, true);
 }
+
 void vdPowerOnAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
 {
   int intTm;
@@ -564,11 +589,12 @@ void vdPowerOnAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
   int intSp;
   
   // Pulse
-  intTm = 3000; intDur = 250; intSp = 5; intCt = 71;
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 3, CRGB(125, 125, 125), CRGB(0, 0, 25), NUM_LEDSs1-1 , 0, false); // 1100
+  intTm = 500; intDur = 250; intSp = 5; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulseTo, CRGB(125, 125, 125), CRGB(0, 0, 25), 0, NUM_LEDSs1-1, false);
   // Clear
-  intTm = 15 + intTm + intDur + (intSp * intCt); intDur = 2000; intSp = 0; intCt = 71;
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, NUM_LEDSs1-1, false); // 900
+  intTm = intAnTmDly(intTm,intDur,intCt,intSp); 
+  intDur = 2000; intSp = 150; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 0, 0), NUM_LEDSs1-1, 0, false);
 }
 
 void vdAlertAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
@@ -585,25 +611,31 @@ void vdDoorOpenAnimation(timed_event teEventList[], unsigned long tmeCurrentTime
   // Door Open Animation
 
   // Clear
-  intTm = 500; intDur = 500; intSp = 10; intCt = 60;
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(25, 0, 0), CRGB(255, 255, 255), 15, 0, false); // 1100
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(25, 0, 0), CRGB(25, 0, 0), 55, 16, false); // 1100
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 56, NUM_LEDSs1-1, false); // 1100
+  intTm = 100; intDur = 500; intSp = 10; intCt = 60;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(255, 64, 64), CRGB(255, 255, 255), 7, 0, false);
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(25, 0, 0), CRGB(255, 64, 64), 15, 8, false); 
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(25, 0, 0), CRGB(25, 0, 0), 55, 16, false);
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(25, 0, 0), CRGB(0, 0, 0), 56, NUM_LEDSs1-1, false);
   // Flash
-  intTm = 15 + intTm + intDur + (intSp * intCt); intDur = 400; intSp = 1; intCt = 71;
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 2, CRGB(80, 80, 0), CRGB(80, 80, 0), 0, NUM_LEDSs1-1, false); // 900
-  intTm = 15 + intTm + intDur + (intSp * intCt); intDur = 400; intSp = 2; intCt = 71;
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 2, CRGB(80, 80, 0), CRGB(80, 80, 0), 0, NUM_LEDSs1-1, false); // 900
-  intTm = 15 + intTm + intDur + (intSp * intCt); intDur = 500; intSp = 6; intCt = 71;
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 2, CRGB(50, 50, 0), CRGB(50, 50, 0), 0, NUM_LEDSs1-1, false); // 900
-  intTm = 15 + intTm + intDur + (intSp * intCt); intDur = 600; intSp = 10; intCt = 71;
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 2, CRGB(40, 30, 0), CRGB(40, 30, 0), 0, NUM_LEDSs1-1, false); // 1200
-  intTm = 15 + intTm + intDur + (intSp * intCt); intDur = 1000; intSp = 30; intCt = 71;
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 2, CRGB(128, 128, 0), CRGB(128, 128, 0), 0, NUM_LEDSs1-1, false); // 2800
+  intTm = intAnTmDly(intTm,intDur,intCt,intSp); 
+  intDur = 400; intSp = 1; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(80, 80, 0), CRGB(80, 80, 0), 0, NUM_LEDSs1-1, false); // 900
+  intTm = intAnTmDly(intTm,intDur,intCt,intSp); 
+  intDur = 400; intSp = 2; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(80, 80, 0), CRGB(80, 80, 0), 0, NUM_LEDSs1-1, false); // 900
+  intTm = intAnTmDly(intTm,intDur,intCt,intSp);  
+  intDur = 500; intSp = 6; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(50, 50, 0), CRGB(50, 50, 0), 0, NUM_LEDSs1-1, false); // 900
+  intTm = intAnTmDly(intTm,intDur,intCt,intSp);  
+  intDur = 600; intSp = 10; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(40, 30, 0), CRGB(40, 30, 0), 0, NUM_LEDSs1-1, false); // 1200
+  intTm = intAnTmDly(intTm,intDur,intCt,intSp);  
+  intDur = 1000; intSp = 30; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(128, 128, 0), 0, NUM_LEDSs1-1, false); // 2800
   // Repeat Pulse
-  intTm = 15 + intTm + intDur + (intSp * intCt);
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), 0, 35, true); //
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, 2000, 60, 1, 2, CRGB(255, 255, 0), CRGB(255, 255, 0), NUM_LEDSs1, 36, true); //
+  intTm = intAnTmDly(intTm,intDur,intCt,intSp); 
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, 2000, 60, AnEvSweep, AnPiPulse, CRGB(255, 255, 0), CRGB(255, 255, 0), 0, 35, true); //
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, 2000, 60, AnEvSweep, AnPiPulse, CRGB(255, 255, 0), CRGB(255, 255, 0), NUM_LEDSs1, 36, true); //
 }
 
 void vdDoorCloseAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
@@ -615,29 +647,34 @@ void vdDoorCloseAnimation(timed_event teEventList[], unsigned long tmeCurrentTim
 
   // Clear
   intTm = 100; intDur = 100; intSp = 0; intCt = 71;
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(25, 0, 0), CRGB(255, 255, 255), 15, 0, false); // 1100
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(25, 0, 0), CRGB(25, 0, 0), 55, 16, false); // 1100
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(25, 0, 0), CRGB(0, 0, 0), 56, NUM_LEDSs1-1, false); // 1100
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(255, 64, 64), CRGB(255, 255, 255), 7, 0, false);
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(25, 0, 0), CRGB(255, 64, 64), 15, 8, false); 
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(25, 0, 0), CRGB(25, 0, 0), 55, 16, false); // 1100
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(25, 0, 0), CRGB(0, 0, 0), 56, NUM_LEDSs1-1, false); // 1100
   // Set
-  intTm = 3000 + intTm + intDur + (intSp * intCt); intDur = 750; intSp = 30; intCt = 71;
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 3, CRGB(0, 255, 0), CRGB(0, 20, 25), 36, NUM_LEDSs1-1, false); // 900
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 3, CRGB(0, 255, 0), CRGB(0, 20, 25), 35, 0, false); // 900
-  intTm = 15 + intTm + intDur + (intSp * intCt); intDur = 1000; intSp = 0; intCt = 71;
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(0, 0, 0), CRGB(0, 20, 25), 0, 20, false);
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(0, 20, 25), CRGB(0, 20, 25), 21, 50, false);
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(0, 20, 25), CRGB(0, 0, 0), 51, NUM_LEDSs1-1, false);
-  intTm = 15 + intTm + intDur + (intSp * intCt); intDur = 5000; intSp = 0; intCt = 71;
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, 1, 1, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, NUM_LEDSs1-1, false); // 1200
-  
+  intTm = intAnTmDly(intTm,intDur,intCt,intSp); 
+  intDur = 750; intSp = 30; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulseTo, CRGB(0, 255, 0), CRGB(0, 20, 25), 36, NUM_LEDSs1-1, false); // 900
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulseTo, CRGB(0, 255, 0), CRGB(0, 20, 25), 35, 0, false); // 900
+  intTm = intAnTmDly(intTm,intDur,intCt,intSp);  
+  intDur = 1000; intSp = 0; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 20, 25), 0, 20, false);
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 20, 25), CRGB(0, 20, 25), 21, 50, false);
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 20, 25), CRGB(0, 0, 0), 51, NUM_LEDSs1-1, false);
+  intTm = intAnTmDly(intTm,intDur,intCt,intSp); 
+  intDur = 5000; intSp = 100; intCt = 71;
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 35, false); // 1200
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 0, 0), NUM_LEDSs1-1, 36, false); // 1200
+
 }
 
 void vdPacificaishAnimation(timed_event teEventList[], unsigned long tmeCurrentTime)
 {
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 1000, 500, 10, 1, 1, CRGB(0, 15, 25), CRGB(0, 15, 25), 0, 59, false); // 1100
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3500, 250, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 0, 15, true); // 900
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3800, 220, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 16, 30, true); // 900
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3600, 270, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 31, 45, true); // 900
-  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3200, 200, 1, 2, CRGB(40, 200, 160), CRGB(40, 200, 160), 46, 59, true); // 900
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 1000, 500, 10, AnEvSweep, AnPiFade, CRGB(0, 15, 25), CRGB(0, 15, 25), 0, 59, false); // 1100
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3500, 250, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), 0, 15, true); // 900
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3800, 220, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), 16, 30, true); // 900
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3600, 270, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), 31, 45, true); // 900
+  vdCreateTimedEvent (teEventList, tmeCurrentTime, 2000, 3200, 200, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), 46, 59, true); // 900
 
 }
 
@@ -680,8 +717,6 @@ const boolean booTest = false;
 
 void setup()
 {
-  // Prep and define Hardware.
-
   // Define LED Strip.
   FastLED.addLeds<LED_TYPE, DATA_PINs1, COLOR_ORDER>(hwLEDs1, NUM_LEDSs1).setCorrection(TypicalLEDStrip);
   FastLED.addLeds<LED_TYPE, DATA_PINs2, COLOR_ORDER>(hwLEDs2, NUM_LEDSs2).setCorrection(TypicalLEDStrip);

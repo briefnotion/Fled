@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.20A
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.21A
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: gi6$b*E>*q%;
 // *
 // ***************************************************************************************
@@ -57,16 +57,22 @@
 // *
 // ***************************************************************************************
 // *
+// *  V 0.21 _200425
+// *      - Small change, if the door is open when the system is powered on then the door
+// *          open animation will be active.
+// *      - Removed blank lines and added blank lines.
+// *      - Manually word_wrapped some stuff.
+// *
 // *  V 0.20 _200424
 // *      - Rewrote a large portion of the code to change the way the LED animations are 
 // *          calculated with respects to time.  
-// *          In short, previously the values of the LEDs were calculated in chunks, beginning
-// *          to end, per event animation.  Now, I am calculating the value of each pixel 
-// *          from the begging of the LED strip, down to the end of the strip.  Think of
-// *          it as moving from an LCD Timex watch, to a progressive scan Sony 4k Gaming 
-// *          Monitor.  Ok, so its not that extreme, but in the future, I will be able 
-// *          to make more accurate calculations when multiple events overlap the same 
-// *          pixel.  We aren't there yet, but we could be.
+// *          In short, previously the values of the LEDs were calculated in chunks, 
+// *          beginning to end, per event animation.  Now, I am calculating the value of 
+// *          each pixel from the begging of the LED strip, down to the end of the strip. 
+// *          Think of it as moving from an LCD Timex watch, to a progressive scan Sony 4k 
+// *          Gaming Monitor.  Ok, so its not that extreme, but in the future, I will be 
+// *          able to make more accurate calculations when multiple events overlap the 
+// *          same pixel.  We aren't there yet, but we could be.
 // *
 // *  V 0.13 _200420
 // *      - Been a month now because of the pandemic. Finally recieved a more spare parts.
@@ -161,7 +167,8 @@
 #define SWITCH_PINs2  9       // Hardware Open Close Door Sensor 1
 
 #define BRIGHTNESS        96  // Using Example Code.  Max unknown
-#define FRAMES_PER_SECOND 120 // Will not be necessary, but keeping, for now, just in case.
+#define FRAMES_PER_SECOND 120 // Will not be necessary, but keeping, for now, just in 
+                              //  case.
 
 #define NUM_STRIPS  2
 #define NUM_TIMED_EVENTS  15  // Untill I can remember how LL, this is being
@@ -188,7 +195,6 @@ struct timed_event_data
 
   boolean booSETCOMPLETE = false;
   boolean booEXPIRED = true;
-
 
   void PreCheck(CRGB hwLEDArray[], CRGB hwLEDStartArray[], unsigned long tmeCurrentTime)
   {
@@ -226,7 +232,8 @@ struct timed_event_data
     //  It doesn' to set it as expired.
     if (booEXPIRED == false)
     {
-      if (tmeCurrent >= tmeSTARTTIME + intDURATION + (abs(intENDPOS - intSTARTPOS) * intSPEED))
+      if (tmeCurrent >= tmeSTARTTIME + intDURATION + 
+          (abs(intENDPOS - intSTARTPOS) * intSPEED))
       {
         booEXPIRED = true;
         ////Serial.println("Event PostCheck  EVENT EXPIRED");
@@ -239,8 +246,6 @@ struct timed_event_data
         //  we took to start the event:  Its duration.  Never mind. Got it.
         //  (num of led * speed + duration)
 
-
-
         booSETCOMPLETE = false;
         booEXPIRED = false;
         tmeSTARTTIME = tmeCurrent;
@@ -248,9 +253,6 @@ struct timed_event_data
     }
   }
 };
-
-
-
 
 struct timed_event
 //  Create a Timed LED Event:
@@ -309,9 +311,9 @@ struct timed_event
     }
   }
 
-
-  CRGB crgb_anim_color(int intDur, byte bytLedAnimation, CRGB crgbCSTart, CRGB crgbCDest1, CRGB crgbCDest2,
-                       unsigned long tmeCurrentTime, unsigned long tmeAnimTime)
+  CRGB crgb_anim_color(int intDur, byte bytLedAnimation, CRGB crgbCSTart, 
+                        CRGB crgbCDest1, CRGB crgbCDest2, unsigned long tmeCurrentTime, 
+                        unsigned long tmeAnimTime)
   //  Returns a CRGB value of the single LED respective to what its value should
   //    be as it is in its time path.
 
@@ -448,7 +450,8 @@ struct timed_event
         {
           if (tmeCurrentTime >= teDATA[event].tmeSTARTTIME)
           {
-            if (((led >= teDATA[event].intSTARTPOS) && (led <= teDATA[event].intENDPOS)) || ((led <= teDATA[event].intSTARTPOS) && (led >= teDATA[event].intENDPOS)))
+            if (((led >= teDATA[event].intSTARTPOS) && (led <= teDATA[event].intENDPOS)) 
+              || ((led <= teDATA[event].intSTARTPOS) && (led >= teDATA[event].intENDPOS)))
             {
 
               // Grab Data that may change or be processed within this switch statement.
@@ -460,11 +463,15 @@ struct timed_event
               {
                 //int count = 
                 // Get value of light based one animation at current time.
-                float fltPower = (float)abs(led - teDATA[event].intSTARTPOS) / (float)(abs(teDATA[event].intENDPOS - teDATA[event].intSTARTPOS));
+                float fltPower = (float)abs(led - teDATA[event].intSTARTPOS) 
+                  / (float)(abs(teDATA[event].intENDPOS - teDATA[event].intSTARTPOS));
 
-                crgbTempDest1.r = (fltPower * crgbTempDest2.r) + ((1 - fltPower) * crgbTempDest1.r);
-                crgbTempDest1.g = (fltPower * crgbTempDest2.g) + ((1 - fltPower) * crgbTempDest1.g);
-                crgbTempDest1.b = (fltPower * crgbTempDest2.b) + ((1 - fltPower) * crgbTempDest1.b);
+                crgbTempDest1.r = (fltPower * crgbTempDest2.r) 
+                  + ((1 - fltPower) * crgbTempDest1.r);
+                crgbTempDest1.g = (fltPower * crgbTempDest2.g) 
+                  + ((1 - fltPower) * crgbTempDest1.g);
+                crgbTempDest1.b = (fltPower * crgbTempDest2.b) 
+                  + ((1 - fltPower) * crgbTempDest1.b);
               }
 
               switch (teDATA[event].bytANIMATION)
@@ -473,11 +480,17 @@ struct timed_event
                   {
                     unsigned long tmeStartAnim;
                   
-                    tmeStartAnim = teDATA[event].tmeSTARTTIME + (abs((led - teDATA[event].intSTARTPOS)) * teDATA[event].intSPEED);
+                    tmeStartAnim = teDATA[event].tmeSTARTTIME 
+                                    + (abs((led - teDATA[event].intSTARTPOS)) 
+                                    * teDATA[event].intSPEED);
   
                     if (tmeCurrentTime >= tmeStartAnim)
                     {
-                      crgbLED = crgb_anim_color(teDATA[event].intDURATION, teDATA[event].bytLEDANIMATION, hwLEDStartArray[led], crgbTempDest1, crgbTempDest2, tmeCurrentTime, tmeStartAnim);
+                      crgbLED = crgb_anim_color(teDATA[event].intDURATION, 
+                                                teDATA[event].bytLEDANIMATION, 
+                                                hwLEDStartArray[led], crgbTempDest1, 
+                                                crgbTempDest2, tmeCurrentTime, 
+                                                tmeStartAnim);
 
                       hwLEDArray[led] = crgbLED;
                       booChanged = true;
@@ -502,6 +515,7 @@ struct timed_event
     return booChanged;
   }
 };
+
 
 // ---------------------------------------------------------------------------------------
 // HARDWARE MONITOR
@@ -533,7 +547,7 @@ struct hardware_monitor
       booPREVCHANGEDETECTED = false;
       tmeCHANGEDETECTEDTIME = tmeTme;
       booFIRSTRUN = false;
-      return false;
+      return booValue;
     }
     else if (booVALUE == booValue)
     {
@@ -572,6 +586,7 @@ void vdClearAllTimedEvent(timed_event teEvent[], int intPos)
   teEvent[intPos].ClearAll();
 }
 
+
 // --- ANIMATIONS ------------------------------------------------------------------------
 
 // PARAMETER REFFERENCE
@@ -590,8 +605,8 @@ void vdClearAllTimedEvent(timed_event teEvent[], int intPos)
 //int intEndPos
 
 int intAnTmDly(int intTm, int intDur, int intCt, int intSp)
-// Calculate and return the next delay time based on duration of event, number of pixels, and animation
-//  speed of each pixel.
+// Calculate and return the next delay time based on duration of event, number of pixels, 
+//  and animation speed of each pixel.
 //  Value in return statement is buffer time.
 {
   return (5 + intTm + intDur + (intSp * intCt));
@@ -735,6 +750,7 @@ int intRestTime = 0;             // Do not check for update until rest time is p
 //    Enabling booTest will slow the board time and enable the //Serial monitor to be read.
 const boolean booTest = false;
 
+
 // ---------------------------------------------------------------------------------------
 // MAIN SETUP
 
@@ -837,7 +853,6 @@ void loop()
     // --- Check and Execute Timed Events That Are Ready ---
 
     booUpdate = teEvent[0].execute(hwLEDs1, hwLEDSTARTs1, tmeCurrentMillis);
-
 
     //  If we made it to this part of the code then we need to
     //    tell the LED hardware that it has a change to commit.

@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.21A
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.22A
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: gi6$b*E>*q%;
 // *
 // ***************************************************************************************
@@ -56,6 +56,18 @@
 // *    https://github.com/briefnotion/Fled/blob/master/Description%20and%20Background.txt
 // *
 // ***************************************************************************************
+// *
+// *  V 0.22 _200427
+// *      - Events crossing over the same pixels now work.  Not perfectly but does work
+// *          when the Events start at the same time.  Will work on this more when I 
+// *          feel like making more complex animations.
+// *      - Changed the intRestTime varible to 15.  Turns out, this arduino isn't as much
+// *          of a turtle as I thought it was.  Actually, not a turtle at all.  Anyway,
+// *          updating the refresh rate at 1000 times a second causes glitches as it writes
+// *          over itself in the same frame.  I changed the varible to = 16 to represent
+// *          something like 60FPS.
+// *      - Changed a bunch of other things while trying to debug a/the problem, that was 
+// *          described and solved with the change above.
 // *
 // *  V 0.21 _200425
 // *      - Small change, if the door is open when the system is powered on then the door
@@ -175,10 +187,18 @@
 //  Also, total number of this will be multiplied by the
 //  amount of LED strips you have setup.  Watch your memory.
 
+
 // ***************************************************************************************
 // STRUCTURES
 // ***************************************************************************************
 //  TIMED EVENT
+
+struct bigCRGB
+{
+  int r = 0;
+  int g = 0;
+  int b = 0;
+};
 
 struct timed_event_data
 {
@@ -187,8 +207,8 @@ struct timed_event_data
   unsigned int intSPEED;
   byte bytANIMATION;
   byte bytLEDANIMATION;
-  CRGB crgbCOLORDEST1;
-  CRGB crgbCOLORDEST2;
+  bigCRGB bigcrgbCOLORDEST1;
+  bigCRGB bigcrgbCOLORDEST2;
   int intSTARTPOS;
   int intENDPOS;
   boolean booREPEAT;
@@ -225,7 +245,7 @@ struct timed_event_data
     }
   }
 
-  void PostCheck(unsigned long tmeCurrent)
+  void PostCheck(unsigned long tmeCurrent,boolean booColision)
   {
     //  Check to see if this event repeats.
 
@@ -235,20 +255,25 @@ struct timed_event_data
       if (tmeCurrent >= tmeSTARTTIME + intDURATION + 
           (abs(intENDPOS - intSTARTPOS) * intSPEED))
       {
-        booEXPIRED = true;
-        ////Serial.println("Event PostCheck  EVENT EXPIRED");
-      }
+          booSETCOMPLETE = false;
+          booEXPIRED = true;
 
-      if (booEXPIRED == true && booREPEAT == true)
-      {
-        //  It does repeat so reschedule it to when we know all the light Paths have been
-        //  complete, which is what I would love to do, but for now we will just go by the
-        //  we took to start the event:  Its duration.  Never mind. Got it.
-        //  (num of led * speed + duration)
+        if (booColision == true)
+        {
+          booSETCOMPLETE = true;
+          booEXPIRED = false;
+        }
+        if (booREPEAT == true)
+        {
+          //  It does repeat so reschedule it to when we know all the light Paths have been
+          //  complete, which is what I would love to do, but for now we will just go by the
+          //  we took to start the event:  Its duration.  Never mind. Got it.
+          //  (num of led * speed + duration)
 
-        booSETCOMPLETE = false;
-        booEXPIRED = false;
-        tmeSTARTTIME = tmeCurrent;
+          booSETCOMPLETE = true;
+          booEXPIRED = false;
+          tmeSTARTTIME = tmeCurrent;
+        }
       }
     }
   }
@@ -288,16 +313,21 @@ struct timed_event
         teDATA[x].intSPEED = intSpeed;
         teDATA[x].bytANIMATION = bytAnimation;
         teDATA[x].bytLEDANIMATION = bytLEDAnimation;
-        teDATA[x].crgbCOLORDEST1 = crgbColor1;
-        teDATA[x].crgbCOLORDEST2 = crgbColor2;
+
+        teDATA[x].bigcrgbCOLORDEST1.r = crgbColor1.r;
+        teDATA[x].bigcrgbCOLORDEST1.g = crgbColor1.g;
+        teDATA[x].bigcrgbCOLORDEST1.b = crgbColor1.b;
+
+        teDATA[x].bigcrgbCOLORDEST2.r = crgbColor2.r;
+        teDATA[x].bigcrgbCOLORDEST2.g = crgbColor2.g;
+        teDATA[x].bigcrgbCOLORDEST2.b = crgbColor2.b;
+
         teDATA[x].intSTARTPOS = intStartPos;
         teDATA[x].intENDPOS = intEndPos;
         teDATA[x].booREPEAT = booRepeat;
 
         teDATA[x].booEXPIRED = false;
         booCreated = true;
-
-
       }
     }
   }
@@ -311,8 +341,8 @@ struct timed_event
     }
   }
 
-  CRGB crgb_anim_color(int intDur, byte bytLedAnimation, CRGB crgbCSTart, 
-                        CRGB crgbCDest1, CRGB crgbCDest2, unsigned long tmeCurrentTime, 
+  bigCRGB crgb_anim_color(int intDur, byte bytLedAnimation, 
+                        bigCRGB bigcrgbCDest1, bigCRGB bigcrgbCDest2, unsigned long tmeCurrentTime, 
                         unsigned long tmeAnimTime)
   //  Returns a CRGB value of the single LED respective to what its value should
   //    be as it is in its time path.
@@ -330,6 +360,7 @@ struct timed_event
 
     unsigned long tmeElapsed = tmeCurrentTime - tmeAnimTime;
     float fltPower;
+    bigCRGB tmpColor;
 
     switch (bytLedAnimation)
     {
@@ -338,17 +369,17 @@ struct timed_event
         {
           if (tmeCurrentTime >= tmeAnimTime + intDur)
           {
-            return crgbCDest1;
+            return bigcrgbCDest1;
           }
           else
           {
             float fltPower = (float)tmeElapsed / (float)intDur;
 
-            byte R = (fltPower * crgbCDest1.r) + ((1 - fltPower) * crgbCSTart.r);
-            byte G = (fltPower * crgbCDest1.g) + ((1 - fltPower) * crgbCSTart.g);
-            byte B = (fltPower * crgbCDest1.b) + ((1 - fltPower) * crgbCSTart.b);
+            tmpColor.r = (fltPower * bigcrgbCDest1.r) + ((1 - fltPower) * tmpColor.r);
+            tmpColor.g = (fltPower * bigcrgbCDest1.g) + ((1 - fltPower) * tmpColor.g);
+            tmpColor.b = (fltPower * bigcrgbCDest1.b) + ((1 - fltPower) * tmpColor.b);
 
-            return CRGB(R, G, B);
+            return tmpColor;
 
           }
         } // END CASE 1
@@ -359,7 +390,7 @@ struct timed_event
         {
           if (tmeCurrentTime >= tmeAnimTime + intDur)
           {
-            return crgbCSTart;
+            return tmpColor;
           }
           else
           {
@@ -373,11 +404,11 @@ struct timed_event
             }
 
             //  Swap to second color at mid point
-            byte R = (fltPower * crgbCDest1.r) + ((1 - fltPower) * crgbCSTart.r);
-            byte G = (fltPower * crgbCDest1.g) + ((1 - fltPower) * crgbCSTart.g);
-            byte B = (fltPower * crgbCDest1.b) + ((1 - fltPower) * crgbCSTart.b);
+            tmpColor.r = (fltPower * bigcrgbCDest1.r) + ((1 - fltPower) * tmpColor.r);
+            tmpColor.g = (fltPower * bigcrgbCDest1.g) + ((1 - fltPower) * tmpColor.g);
+            tmpColor.b = (fltPower * bigcrgbCDest1.b) + ((1 - fltPower) * tmpColor.b);
 
-            return CRGB(R, G, B);
+            return tmpColor;
           }
         } // END CASE 2
 
@@ -387,31 +418,39 @@ struct timed_event
         {
           if (tmeCurrentTime >= tmeAnimTime + intDur)
           {
-            return crgbCDest2;
+            return bigcrgbCDest2;
           }
           else
           {
-            CRGB crgbA;
-            CRGB crgbB;
+            bigCRGB bigcrgbA;
+            bigCRGB bigcrgbB;
             //  Swap to second color and power down at mid point.
             if ((tmeElapsed * 2) <= (intDur))
             {
               fltPower = (float)(tmeElapsed) * 2 / ((float)intDur);
-              crgbA = crgbCSTart;
-              crgbB = crgbCDest1;
+              bigcrgbA = tmpColor;
+
+              bigcrgbB.r = bigcrgbCDest1.r;
+              bigcrgbB.g = bigcrgbCDest1.g;
+              bigcrgbB.b = bigcrgbCDest1.b;
             }
             else
             {
               fltPower = 1 - (((float)((tmeElapsed * 2) - intDur) / (float)intDur));
-              crgbA = crgbCDest2;
-              crgbB = crgbCDest1;
+              bigcrgbA.r = bigcrgbCDest2.r;
+              bigcrgbA.g = bigcrgbCDest2.g;
+              bigcrgbA.b = bigcrgbCDest2.b;
+
+              bigcrgbB.r = bigcrgbCDest1.r;
+              bigcrgbB.g = bigcrgbCDest1.g;
+              bigcrgbB.b = bigcrgbCDest1.b;
             }
 
-            byte R = (fltPower * crgbB.r) + ((1 - fltPower) * crgbA.r);
-            byte G = (fltPower * crgbB.g) + ((1 - fltPower) * crgbA.g);
-            byte B = (fltPower * crgbB.b) + ((1 - fltPower) * crgbA.b);
+            tmpColor.r = (fltPower * bigcrgbB.r) + ((1 - fltPower) * bigcrgbA.r);
+            tmpColor.g = (fltPower * bigcrgbB.g) + ((1 - fltPower) * bigcrgbA.g);
+            tmpColor.b = (fltPower * bigcrgbB.b) + ((1 - fltPower) * bigcrgbA.b);
 
-            return CRGB(R, G, B);
+            return tmpColor;
           }
 
         } // END CASE 3
@@ -435,72 +474,174 @@ struct timed_event
 
     boolean booChanged = false;
 
+
+
     for (int event = 0; event < NUM_TIMED_EVENTS; event ++)
     {
       teDATA[event].PreCheck(hwLEDArray, hwLEDStartArray, tmeCurrentTime);
     }
-
+    boolean booPixelColorChanged; 
     CRGB crgbLED;
+    int activeeventcount;
+    boolean booEventColision[NUM_TIMED_EVENTS];
+    bigCRGB bigcrgbNewColor;
+    bigCRGB bigcrgbTempStart;
+    bigCRGB tempColor;
+    bigCRGB bigcrgbTempDest1;
+    bigCRGB bigcrgbTempDest2;
 
+    unsigned long tmeStartAnim;
+
+    // Clear Collision Tracker
+    for (int x=0; x < NUM_TIMED_EVENTS; x++)
+    {
+      booEventColision[x]= false;
+    }
+
+    // Process LEDs, one by one.
     for (int led = 0; led < intLEDCOUNT; led ++)
     {
+
+      // Clear the value of the new LED color.  Should only update when it has changed.
+      bigcrgbNewColor.r = 0;
+      bigcrgbNewColor.g = 0;
+      bigcrgbNewColor.b = 0;
+
+      activeeventcount = 0;
+      booPixelColorChanged = false;
+
+      // Store the value of the Start color, once per event.
+      //  No matter what event is called, all changes are based on it.
+      bigcrgbTempStart.r = hwLEDStartArray[led].r;
+      bigcrgbTempStart.g = hwLEDStartArray[led].g;
+      bigcrgbTempStart.b = hwLEDStartArray[led].b;
+
+      // Process each event, one by one.
       for (int event = 0; event < NUM_TIMED_EVENTS; event ++)
       {
+        // Clear the tmp colors, in case they have data in them at the start of each event process.
+        tempColor.r = 0;
+        tempColor.g = 0;
+        tempColor.b = 0;
+
+        // Only continue processing the event if it is scheduled.
         if (teDATA[event].booEXPIRED == false)
         {
-          if (tmeCurrentTime >= teDATA[event].tmeSTARTTIME)
+          
+          // Is the LED we are processing within the event?
+          if (((led >= teDATA[event].intSTARTPOS) && (led <= teDATA[event].intENDPOS)) 
+            || ((led <= teDATA[event].intSTARTPOS) && (led >= teDATA[event].intENDPOS)))
+
           {
-            if (((led >= teDATA[event].intSTARTPOS) && (led <= teDATA[event].intENDPOS)) 
-              || ((led <= teDATA[event].intSTARTPOS) && (led >= teDATA[event].intENDPOS)))
+            // OK, so an event is schedule, but is it ready to start?
+            if (tmeCurrentTime >= teDATA[event].tmeSTARTTIME)
             {
+              // Grab Event Data that may change or be processed within this switch statement.
+              //  We will be calculating the change of the pixel color, not the actual color.
+              bigcrgbTempDest1.r = teDATA[event].bigcrgbCOLORDEST1.r - bigcrgbTempStart.r;
+              bigcrgbTempDest1.g = teDATA[event].bigcrgbCOLORDEST1.g - bigcrgbTempStart.g;
+              bigcrgbTempDest1.b = teDATA[event].bigcrgbCOLORDEST1.b - bigcrgbTempStart.b;
 
-              // Grab Data that may change or be processed within this switch statement.
-              CRGB crgbTempDest1 = teDATA[event].crgbCOLORDEST1;
-              CRGB crgbTempDest2 = teDATA[event].crgbCOLORDEST2;
+              bigcrgbTempDest2.r = teDATA[event].bigcrgbCOLORDEST2.r - bigcrgbTempStart.r;
+              bigcrgbTempDest2.g = teDATA[event].bigcrgbCOLORDEST2.g - bigcrgbTempStart.g;
+              bigcrgbTempDest2.b = teDATA[event].bigcrgbCOLORDEST2.b - bigcrgbTempStart.b;
 
-              // Preprocess Dest 2 for dynamic DEST2 on Pixel Fade.
-              if (teDATA[event].bytLEDANIMATION == AnPiFade)
+              // Figure out when the LED is suposed to start doing something.
+              tmeStartAnim = teDATA[event].tmeSTARTTIME 
+                              + (abs((led - teDATA[event].intSTARTPOS)) 
+                              * teDATA[event].intSPEED);
+
+              // The Pixel on this Event is ready to change.
+              if ((tmeCurrentTime >= tmeStartAnim)) // && (tmeCurrentTime <= teDATA[event].tmeSTARTTIME + teDATA[event].intDURATION + (abs(teDATA[event].intENDPOS - teDATA[event].intSTARTPOS) * teDATA[event].intSPEED))  )
               {
-                //int count = 
-                // Get value of light based one animation at current time.
-                float fltPower = (float)abs(led - teDATA[event].intSTARTPOS) 
-                  / (float)(abs(teDATA[event].intENDPOS - teDATA[event].intSTARTPOS));
-
-                crgbTempDest1.r = (fltPower * crgbTempDest2.r) 
-                  + ((1 - fltPower) * crgbTempDest1.r);
-                crgbTempDest1.g = (fltPower * crgbTempDest2.g) 
-                  + ((1 - fltPower) * crgbTempDest1.g);
-                crgbTempDest1.b = (fltPower * crgbTempDest2.b) 
-                  + ((1 - fltPower) * crgbTempDest1.b);
-              }
-
-              switch (teDATA[event].bytANIMATION)
-              {
-                case AnEvSweep:
+                // Preprocess Dest 2 for dynamic DEST2 on Pixel Fade.
+                if (teDATA[event].bytLEDANIMATION == AnPiFade)
+                {
+                  // Keep track of how many events changed the same pixel.
+                  activeeventcount++;
+                  if(activeeventcount>1)
                   {
-                    unsigned long tmeStartAnim;
-                  
-                    tmeStartAnim = teDATA[event].tmeSTARTTIME 
-                                    + (abs((led - teDATA[event].intSTARTPOS)) 
-                                    * teDATA[event].intSPEED);
-  
-                    if (tmeCurrentTime >= tmeStartAnim)
-                    {
-                      crgbLED = crgb_anim_color(teDATA[event].intDURATION, 
-                                                teDATA[event].bytLEDANIMATION, 
-                                                hwLEDStartArray[led], crgbTempDest1, 
-                                                crgbTempDest2, tmeCurrentTime, 
-                                                tmeStartAnim);
+                    booEventColision[event]=true;
+                  }
+                  // Get value of light based one animation at current time.
+                  float fltPower = (float)abs(led - teDATA[event].intSTARTPOS) 
+                    / (float)(abs(teDATA[event].intENDPOS - teDATA[event].intSTARTPOS));
 
-                      hwLEDArray[led] = crgbLED;
-                      booChanged = true;
-                    }
-                  } // End Case AnEvSweep
+                  bigcrgbTempDest1.r = (fltPower * bigcrgbTempDest2.r) 
+                    + ((1 - fltPower) * bigcrgbTempDest1.r);
+
+                  bigcrgbTempDest1.g = (fltPower * bigcrgbTempDest2.g) 
+                    + ((1 - fltPower) * bigcrgbTempDest1.g);
+
+                  bigcrgbTempDest1.b = (fltPower * bigcrgbTempDest2.b) 
+                    + ((1 - fltPower) * bigcrgbTempDest1.b);
+                }
+
+                switch (teDATA[event].bytANIMATION)
+                {
+                  case AnEvSweep:
+                    {
+                      // Calculate how much this Event will chaange the pixel.
+                      tempColor = crgb_anim_color(teDATA[event].intDURATION, 
+                                                teDATA[event].bytLEDANIMATION, 
+                                                bigcrgbTempDest1, 
+                                                bigcrgbTempDest2, tmeCurrentTime, 
+                                                tmeStartAnim);
+                    
+                      bigcrgbNewColor.r = bigcrgbNewColor.r + tempColor.r;
+                      bigcrgbNewColor.g = bigcrgbNewColor.g + tempColor.g;
+                      bigcrgbNewColor.b = bigcrgbNewColor.b + tempColor.b;
+
+                      booPixelColorChanged = true;
+                   
+                    } // End Case AnEvSweep
                 } // End Switch Statement
-            } // End LED Postion Check
-          } // End Time Check
+              }              
+            } // End Time Check
+            
+          } // End LED Postion Check
         } // End Expiration Check
       } // End For Event Loop
+
+      // Now that all event are processeds, update the Main LED to the new value.
+      // But only if it changed.
+      if (booPixelColorChanged == true)
+      {
+        bigcrgbNewColor.r = bigcrgbNewColor.r + bigcrgbTempStart.r;
+        bigcrgbNewColor.g = bigcrgbNewColor.g + bigcrgbTempStart.g;
+        bigcrgbNewColor.b = bigcrgbNewColor.b + bigcrgbTempStart.b;
+
+        if (bigcrgbNewColor.r > 255)
+        {
+          bigcrgbNewColor.r = 255;
+        }
+        if (bigcrgbNewColor.g > 255)
+        {
+          bigcrgbNewColor.g = 255;
+        }
+        if (bigcrgbNewColor.b > 255)
+        {
+          bigcrgbNewColor.b = 255;
+        }
+        if (bigcrgbNewColor.r  < 0)
+        {
+          bigcrgbNewColor.r = 0;
+        }
+        if (bigcrgbNewColor.g  < 0)
+        {
+          bigcrgbNewColor.g = 0;
+        }
+        if (bigcrgbNewColor.b  < 0)
+        {
+          bigcrgbNewColor.b = 0;
+        }
+
+        hwLEDArray[led].r = bigcrgbNewColor.r;
+        hwLEDArray[led].g = bigcrgbNewColor.g;
+        hwLEDArray[led].b = bigcrgbNewColor.b;
+        
+        booChanged = true;
+      }
     } // End For LED Loop
 
     // All Leds Processed
@@ -509,7 +650,7 @@ struct timed_event
 
     for (int event = 0; event < NUM_TIMED_EVENTS; event ++)
     {
-      teDATA[event].PostCheck(tmeCurrentTime);
+      teDATA[event].PostCheck(tmeCurrentTime,booEventColision[event]);
     }
 
     return booChanged;
@@ -547,7 +688,8 @@ struct hardware_monitor
       booPREVCHANGEDETECTED = false;
       tmeCHANGEDETECTEDTIME = tmeTme;
       booFIRSTRUN = false;
-      return booValue;
+      return booValue;  // Change this if you feel like testing
+      //return false;   // you feel like testing the door open on start behaviour
     }
     else if (booVALUE == booValue)
     {
@@ -708,11 +850,24 @@ void vdDoorCloseAnimation(timed_event teEvent[], int intPos, unsigned long tmeCu
 
 void vdPacificaishAnimation(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
 {
+  /*
   teEvent[intPos].set(tmeCurrentTime, 1000, 500, 10, AnEvSweep, AnPiFade, CRGB(0, 15, 25), CRGB(0, 15, 25), 0, 59, false); // 1100
   teEvent[intPos].set(tmeCurrentTime, 2000, 3500, 250, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), 0, 15, true); // 900
   teEvent[intPos].set(tmeCurrentTime, 2000, 3800, 220, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), 16, 30, true); // 900
   teEvent[intPos].set(tmeCurrentTime, 2000, 3600, 270, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), 31, 45, true); // 900
   teEvent[intPos].set(tmeCurrentTime, 2000, 3200, 200, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), 46, 59, true); // 900
+  */
+
+
+  teEvent[intPos].set(tmeCurrentTime, 1000, 500, 10, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 0, 60), 0, 59, false); // 1100
+  teEvent[intPos].set(tmeCurrentTime, 2000, 3500, 250, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), 0, 59, true); // 900
+  teEvent[intPos].set(tmeCurrentTime, 2000, 1500, 150, AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), 0, 59, true); // 900
+  teEvent[intPos].set(tmeCurrentTime, 2000, 3600, 270, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), 0, 59, true); // 900
+  teEvent[intPos].set(tmeCurrentTime, 2000, 3200, 200, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), 0, 59, true); // 900
+
+  teEvent[intPos].set(tmeCurrentTime, 2000, 250, 60, AnEvSweep, AnPiPulse, CRGB(255, 0, 0), CRGB(50, 0, 0), 59, 0, true); // 900
+  teEvent[intPos].set(tmeCurrentTime, 2000, 1500, 150, AnEvSweep, AnPiPulse, CRGB(0, 255, 0), CRGB(40, 200, 160), 59, 0, true); // 900
+  teEvent[intPos].set(tmeCurrentTime, 2000, 1500, 40, AnEvSweep, AnPiPulse, CRGB(0, 0, 255), CRGB(40, 200, 160), 0, 59, true); // 900
 
 }
 
@@ -744,7 +899,7 @@ const int ledPin =  LED_BUILTIN;
 //    read pass is performed and transmitted from the controller to the main system.
 unsigned long tmeCurrentMillis = millis();
 unsigned long tmePrevMillis = 0;
-int intRestTime = 0;             // Do not check for update until rest time is passed.
+int intRestTime = 16;  // 16 = 60 fps     // Do not check for update until rest time is passed.
 
 // Enable //Serial Monitor for testing
 //    Enabling booTest will slow the board time and enable the //Serial monitor to be read.
@@ -824,6 +979,7 @@ void loop()
       {
         vdClearAllTimedEvent(teEvent, 0);
         vdDoorOpenAnimation(teEvent, 0, tmeCurrentMillis);
+        //vdPacificaishAnimation(teEvent, 0, tmeCurrentMillis); // If testing.
       }
       else
       {

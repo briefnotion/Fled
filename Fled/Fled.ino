@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.23A
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.30A
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: EQK6}Lc`:Eg>
 // *
 // ***************************************************************************************
@@ -57,7 +57,39 @@
 // *
 // ***************************************************************************************
 // *
-// *  V 0.23 _200502
+// *  V 0.30 _200513
+// *      - Adding communication code to recieve commands from a control module. 
+// *          It doesn't work fully, but it is part of the next phase of the process so 
+// *          I did start testing it.  Leaving it in for now.
+// *      - Spent what felt like the better part of a year trying to rewrite the 
+// *          fade animations to not use the StartArray.  First by care and finess, 
+// *          second by maticulus calculations, and third by hammer, duck tape, and
+// *          zip ties.  Nothing worked.  Threw the whole thing in the trash can 
+// *          and picked out the things that actully worked.  Which are:
+// *      - New compile time definitions for BOOTEST, BOORESTIME, and BOOTESTRESTTIME. 
+// *      - Fast, quickly expiring animations should now finish before purging 
+// *          themselves.  Although I picked it out of the trash, and it worked before.
+// *          I haven't tested it on this build because it isn't critical with the current 
+// *          animations.  It's a part of the flash animation, which is useless anyway 
+// *          untill I get a control moudule coded, tested, and built.
+// *      - The one major bug that still exist is within the fade animation.
+// *          If a fade animation is called ontop of another active one, weird things 
+// *          happen, glitchy type stuff.
+// *          This error also becomes appearant when calling to animations back to back. 
+// *          Even though one should be expired, the problem apears.  I found out I 
+// *          can get around this by padding them, but I shouldn't have to.
+// *          Also, a strange backwash is apearant if the LEDs were dithered to another
+// *          color.
+// *      - The program takes up way too much ram.  I need to clean house.  Waiting on 
+// *          it for now untill I install my second set of light strips tomorrow or the
+// *          day after.  I would really like to get 3 LED light strips, or about 200 LEDs
+// *          on a single Arduino NANO.  If I could do away with the Start LED array...
+// *          if only.
+// *      - Brought the frame rate back to 1000 - 1 FPS.  I don't know what the frame 
+// *          rate is, really.  I think I had to tone it down in the prev build because 
+// *          I didn't know about the fade animation bug.
+// *
+// *  V 0.23 _200505
 // *      - Added a Lock LED Start parameter to the events to prevent multiple events on
 // *          the same pixel set, starting at different times, to not step on each other.
 // *      - Changed some varible sizes to save space.  LED counts are now one byte and
@@ -169,6 +201,49 @@
 // ***************************************************************************************
 
 #include <FastLED.h>
+#include <Wire.h>
+
+// HARDWARE SETUP
+
+// Testing and Debugging
+#define BOOTEST       false
+#define RESTTIME      1
+#define TESTRESTTIME  16
+// LED Strip
+
+#define DATA_PINs1    3       // A3 - Data Pin for Strip 1
+#define DATA_PINs2    4       // A4 - Data Pin for Strip 2
+//#define CLK_PIN     5       // If your LED_TYPE requires one.
+#define LED_TYPE      WS2812B
+#define COLOR_ORDER   GRB
+#define NUM_LEDSs1    71
+#define NUM_LEDSs2    60
+
+#define SWITCH_PINs1  8       // A8 - Hardware Open Close Door Sensor 1
+#define SWITCH_PINs2  9       // A9 - Hardware Open Close Door Sensor 1
+
+#define BRIGHTNESS        96  // Using Example Code.  Max unknown
+#define FRAMES_PER_SECOND 120 // Will not be necessary, but keeping, for now, just in 
+//  case.
+
+// Communications
+// Handled by Wire library I2C/TWI.  Pins are hardwired and only defined here for
+//  reference.
+#define COMMDATA      D4      // D4 - Data line.
+#define COMMCLK       D5      // D5 - Clock line.
+
+#define SLAVEID       5       // ID of this device on the bus.  Needs to change for 
+//  every device.  A percistand unique ID would make
+//  this much easier during deployment.
+#define DATASIZE      1       // The size of the data packet.
+
+// Software Management
+
+#define NUM_STRIPS        2
+#define NUM_TIMED_EVENTS  15  // Untill I can remember how LL, this is being
+//  Also, total number of this will be multiplied by the
+//  amount of LED strips you have setup.  Watch your memory.
+
 
 // BASIC DEFINITIONS FOR EASY Reference
 
@@ -180,30 +255,12 @@
 #define AnPiPulse     2
 #define AnPiPulseTo   3
 
-// HARDWARE SETUP
-
-#define DATA_PINs1    3       // Data Pin for Strip 1
-#define DATA_PINs2    4       // Data Pin for Strip 2
-//#define CLK_PIN     5       // If your LED_TYPE requires one.
-#define LED_TYPE      WS2812B
-#define COLOR_ORDER   GRB
-#define NUM_LEDSs1    71
-#define NUM_LEDSs2    60
-
-#define SWITCH_PINs1  8       // Hardware Open Close Door Sensor 1
-#define SWITCH_PINs2  9       // Hardware Open Close Door Sensor 1
-
-#define BRIGHTNESS        96  // Using Example Code.  Max unknown
-#define FRAMES_PER_SECOND 120 // Will not be necessary, but keeping, for now, just in 
-//  case.
-
-#define RESTTIME          16
-
-#define NUM_STRIPS        2
-#define NUM_TIMED_EVENTS  15  // Untill I can remember how LL, this is being
-//  Also, total number of this will be multiplied by the
-//  amount of LED strips you have setup.  Watch your memory.
-
+// Hardcoding this for now.
+#define AnTaAllOff    0
+#define AnTaPowerOn   1
+#define AnTaDoorOpen  2
+#define AnTaDoorClose 3
+#define AnTaFlash 4
 
 // ***************************************************************************************
 // STRUCTURES
@@ -216,6 +273,7 @@ struct bigCRGB
   int r = 0;
   int g = 0;
   int b = 0;
+  boolean complete = false;
 };
 
 struct timed_event_data
@@ -233,6 +291,7 @@ struct timed_event_data
   boolean booREPEAT;
   //boolean booLOCK;
 
+  boolean booCOMPLETE = false;
   boolean booSETCOMPLETE = false;
   boolean booEXPIRED = true;
 
@@ -279,9 +338,11 @@ struct timed_event_data
       //  (num of led * speed + duration)
       // Grabbing actual current time to process decayed events, because alot could've happened
       // since then.
-      if (millis() >= tmeSTARTTIME + intDURATION +
-          ((abs(intENDPOS - intSTARTPOS) + 1) * intSPEED))
-      {
+
+      if (booCOMPLETE == true)
+      //if (millis() >= tmeSTARTTIME + intDURATION +
+      //    ((abs(intENDPOS - intSTARTPOS) + 1) * intSPEED))
+           {
         // The event is old and nothing else is using its start colors.
         if (booColision == false && booREPEAT == false)
         {
@@ -319,7 +380,9 @@ struct timed_event_data
         // The event repeats, collision is irrelevant.
         if (booREPEAT = true)
         {
-          // Keep the event active by resetting its start time.
+          // Keep the event active by resetting its start time and setting it
+          //  to be incomplete.
+          booCOMPLETE = false;
           tmeSTARTTIME = tmeCurrent;  // Using current time here because we want
           //  to keep the frames the same.
         }
@@ -377,6 +440,8 @@ struct timed_event
         teDATA[x].intENDPOS = intEndPos;
         teDATA[x].booREPEAT = booRepeat;
 
+        teDATA[x].booCOMPLETE = false;
+        teDATA[x].booSETCOMPLETE = false;
         teDATA[x].booEXPIRED = false;
         booCreated = true;
       }
@@ -392,6 +457,8 @@ struct timed_event
       teDATA[x].booSETCOMPLETE = false;
     }
   }
+
+  // - Timed Event LED Animations --------------------------------------------------------
 
   bigCRGB crgb_anim_color(int intDur, byte bytLedAnimation,
                           bigCRGB bigcrgbCDest1, bigCRGB bigcrgbCDest2, unsigned long tmeCurrentTime,
@@ -421,7 +488,12 @@ struct timed_event
         {
           if (tmeCurrentTime >= tmeAnimTime + intDur)
           {
-            return bigcrgbCDest1;
+            tmpColor.r = bigcrgbCDest1.r;
+            tmpColor.g = bigcrgbCDest1.g;
+            tmpColor.b = bigcrgbCDest1.b;
+            tmpColor.complete = true;
+           
+            return tmpColor;
           }
           else
           {
@@ -432,7 +504,6 @@ struct timed_event
             tmpColor.b = (fltPower * bigcrgbCDest1.b) + ((1 - fltPower) * tmpColor.b);
 
             return tmpColor;
-
           }
         } // END CASE 1
 
@@ -442,6 +513,7 @@ struct timed_event
         {
           if (tmeCurrentTime >= tmeAnimTime + intDur)
           {
+            tmpColor.complete = true;
             return tmpColor;
           }
           else
@@ -470,7 +542,11 @@ struct timed_event
         {
           if (tmeCurrentTime >= tmeAnimTime + intDur)
           {
-            return bigcrgbCDest2;
+            tmpColor.r = bigcrgbCDest2.r;
+            tmpColor.g = bigcrgbCDest2.g;
+            tmpColor.b = bigcrgbCDest2.b;
+            tmpColor.complete = true;
+            return tmpColor;
           }
           else
           {
@@ -511,6 +587,8 @@ struct timed_event
 
   }
 
+  // -------------------------------------------------------------------------------------
+
   boolean execute(CRGB hwLEDArray[], CRGB hwLEDStartArray[], boolean hwLEDStartArrayL[], unsigned long tmeCurrentTime)
   //  Sets all requested light paths, start to end position, to begin their animation
   //    at a future time.
@@ -523,15 +601,6 @@ struct timed_event
   //                  Duration, destination color, and LED animation will also be passed
   //                  to its light path.
   {
-
-    boolean booChanged = false;
-
-
-
-    for (int event = 0; event < NUM_TIMED_EVENTS; event ++)
-    {
-      teDATA[event].PreCheck(hwLEDArray, hwLEDStartArray, hwLEDStartArrayL, tmeCurrentTime);
-    }
     boolean booPixelColorChanged;
     CRGB crgbLED;
     int activeeventcount;
@@ -542,13 +611,24 @@ struct timed_event
     bigCRGB tempColor;
     bigCRGB bigcrgbTempDest1;
     bigCRGB bigcrgbTempDest2;
-
+    
+    boolean booChanged = false;
     unsigned long tmeStartAnim;
 
-    // Clear Collision Tracker
+
+        for (int event = 0; event < NUM_TIMED_EVENTS; event ++)
+    {
+      teDATA[event].PreCheck(hwLEDArray, hwLEDStartArray, hwLEDStartArrayL, tmeCurrentTime);
+    }
+    
+    // Clear Collision Tracker and Completeness :)
     for (int x = 0; x < NUM_TIMED_EVENTS; x++)
     {
       booEventColision[x] = false;
+      if (tmeCurrentTime >= teDATA[x].tmeSTARTTIME)
+      {
+        teDATA[x].booCOMPLETE = true;
+      }      
     }
 
     // Process LEDs, one by one.
@@ -609,6 +689,7 @@ struct timed_event
                 }
               }
 
+
               // Grab Event Data that may change or be processed within this switch statement.
               //  We will be calculating the change of the pixel color, not the actual color.
               bigcrgbTempDest1.r = teDATA[event].bigcrgbCOLORDEST1.r - bigcrgbTempStart.r;
@@ -618,6 +699,7 @@ struct timed_event
               bigcrgbTempDest2.r = teDATA[event].bigcrgbCOLORDEST2.r - bigcrgbTempStart.r;
               bigcrgbTempDest2.g = teDATA[event].bigcrgbCOLORDEST2.g - bigcrgbTempStart.g;
               bigcrgbTempDest2.b = teDATA[event].bigcrgbCOLORDEST2.b - bigcrgbTempStart.b;
+
 
               // Figure out when the LED is suposed to start doing something.
               tmeStartAnim = teDATA[event].tmeSTARTTIME
@@ -667,11 +749,19 @@ struct timed_event
                                                   bigcrgbTempDest2, tmeCurrentTime,
                                                   tmeStartAnim);
 
+                      //  Update the events completeness if its still active.
+                      if (tempColor.complete == false)
+                      {
+                        teDATA[event].booCOMPLETE = false;
+                      }
+
                       bigcrgbNewColor.r = bigcrgbNewColor.r + tempColor.r;
                       bigcrgbNewColor.g = bigcrgbNewColor.g + tempColor.g;
                       bigcrgbNewColor.b = bigcrgbNewColor.b + tempColor.b;
 
                       booPixelColorChanged = true;
+
+
 
                     } // End Case AnEvSweep
                 } // End Switch Statement
@@ -773,8 +863,16 @@ struct hardware_monitor
       booPREVCHANGEDETECTED = false;
       tmeCHANGEDETECTEDTIME = tmeTme;
       booFIRSTRUN = false;
-      return booValue;  // Change this if you feel like testing
-      //return false;   // you feel like testing the door open on start behaviour
+
+      if (BOOTEST == false)
+      {
+        return booValue;  // Comment this line out when testing
+      }
+      else
+      {
+        return false;   // Comment this line out when not testing
+      }
+
     }
     else if (booVALUE == booValue)
     {
@@ -873,6 +971,34 @@ void vdPowerOnAnimation(timed_event teEvent[], int intPos, unsigned long tmeCurr
 //{
 //
 //}
+
+void vdFlashAnimation(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
+{
+  int intTm;
+  int intDur;
+  int intCt;
+  int intSp;
+
+  /*
+    // Error Revealed in Pulse and PulseTo not reaching final color on fast cycles.
+    intTm = 100; intDur = 150; intSp = 0; intCt = 71;
+    teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(255, 255, 255), CRGB(0, 0, 0), 0, NUM_LEDSs1 - 1, false);
+    intTm = 300;
+    teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(255, 255, 255), CRGB(0, 0, 0), 0, NUM_LEDSs1 - 1, false);
+    intTm = 400;
+    teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(255, 255, 255), CRGB(0, 0, 0), 0, NUM_LEDSs1 - 1, false);
+  */
+    intTm = 100; intDur = 150; intSp = 0; intCt = 71;
+    teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(255, 255, 255), CRGB(0, 0, 0), 0, NUM_LEDSs1 - 1, false);
+    intTm = 300;
+    teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(255, 255, 255), CRGB(0, 0, 0), 0, NUM_LEDSs1 - 1, false);
+    intTm = 500;
+    teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(255, 255, 255), CRGB(0, 0, 0), 0, NUM_LEDSs1 - 1, false);
+    intTm = 700;
+    teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(255, 255, 255), CRGB(0, 0, 0), 0, NUM_LEDSs1 - 1, false);
+    //intTm = 700; intDur = 1000; intSp = 0; intCt = 71;
+    //teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 0, 0), 0, NUM_LEDSs1 - 1, false);
+}
 
 void vdDoorOpenAnimation(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
 // Door is open, engage safety lights.
@@ -1014,10 +1140,6 @@ unsigned long tmeCurrentMillis = millis();
 unsigned long tmePrevMillis = 0;
 int intRestTime = RESTTIME;  // 16 = 60 fps     // Do not check for update until rest time is passed.
 
-// Enable //Serial Monitor for testing
-//    Enabling booTest will slow the board time and enable the //Serial monitor to be read.
-const boolean booTest = false;
-
 
 // ---------------------------------------------------------------------------------------
 // MAIN SETUP
@@ -1038,14 +1160,19 @@ void setup()
 
   teEvent[0].create(NUM_LEDSs1);
 
-  if (booTest == true)
+  // Define Door Sensors.
+  hwDoors1.set(SWITCH_PINs1, 500);
+  //hwDoors2.set(false, 100);
+
+  // Define Communications.
+  Wire.begin(SLAVEID);              // Connect to I2C bus with defined slave ID as address
+  Wire.onReceive(onDataAvailable);  // Register data avaiable event.
+
+  // Open serial communications if in debug mode.
+  if (BOOTEST == true)
   {
     Serial.begin(9600);
   }
-
-  // Set Door
-  hwDoors1.set(SWITCH_PINs1, 500);
-  //hwDoors2.set(false, 100);
 
   // Boot Animation
   // Make sure we have the current time before we try any test animations.
@@ -1138,9 +1265,61 @@ void loop()
 
     // Debug Routines ---
     // Slow delay if in testing mode.
-    if (booTest == true)
+    if (BOOTEST == true)
     {
-      intRestTime = 250;
+      intRestTime = TESTRESTTIME;
     }
   }   // End Delayless Loop
+}
+
+// ---------------------------------------------------------------------------------------
+// Events
+
+void onDataAvailable(int intCount)
+{
+  byte bytData[DATASIZE];
+  int x = 0;
+
+
+  Serial.print("Receiving Data: ");
+
+  // Read comm data into array;
+  while (Wire.available() > 0)
+  {
+    bytData[x] = Wire.read();
+    x++;
+  }
+
+  // Debug
+  for (int cnt = 0; cnt < x; cnt++)
+  {
+    Serial.print(bytData[cnt]);
+  }
+  Serial.println();
+
+  // Figure out what task needs to be done, and do it.
+  switch (bytData[x])
+  {
+    case AnTaAllOff:
+      {
+        vdClearAllTimedEvent(teEvent, 0, hwLEDSTARTLs1);
+      }
+    case AnTaPowerOn:
+      {
+        vdPowerOnAnimation(teEvent, 0, tmeCurrentMillis);
+      }
+
+    case AnTaDoorOpen:
+      {
+        vdDoorOpenAnimation(teEvent, 0, tmeCurrentMillis);
+      }
+    case AnTaDoorClose:
+      {
+        vdDoorCloseAnimation(teEvent, 0, tmeCurrentMillis);
+      }
+    case AnTaFlash:
+      {
+        vdFlashAnimation(teEvent, 0, tmeCurrentMillis);
+      }
+  }
 }

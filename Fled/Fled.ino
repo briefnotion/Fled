@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.50A
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.50B
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: EQK6}Lc`:Eg>
 // *
 // ***************************************************************************************
@@ -1410,7 +1410,7 @@ void vdPacificaishAnimationFrontClose(timed_event teEvent[], int intPos, unsigne
 // This animation was my personal chalenge to see if I could make a similar animation that was
 // provided in the demos and examples, as PacificaAnimation, of the FastLed library.
 {
-  teEvent[intPos].set(tmeCurrentTime, 500, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
+  teEvent[intPos].set(tmeCurrentTime, 500, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, true);
 
   // Set the background color.
   teEvent[intPos].set(tmeCurrentTime, 1000, 500, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, false);
@@ -1818,15 +1818,14 @@ void loop()
     //boolean booSensorReads2 = LOW;
     if (hwDoors[2].changed(booSensorReads2))
     {
-      if (booSensorReads2 == HIGH)
-        boAuxLightsIsOn = AuxLightControlModule(teEvent, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
+      boAuxLightsIsOn = AuxLightControlModule(teEvent, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
     }
 
     boolean booSensorReads3 = digitalRead(SWITCH_PINs3);
     //boolean booSensorReads3 = LOW;
     if (hwDoors[3].changed(booSensorReads3))
     {
-        boAuxLightsIsOn = AuxLightControlModule(teEvent, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
+      boAuxLightsIsOn = AuxLightControlModule(teEvent, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
     }
 
     // --- Check and Execute Timed Events That Are Ready ---

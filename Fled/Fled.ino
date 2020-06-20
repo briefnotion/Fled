@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.52a
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.52c
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: EQK6}Lc`:Eg>
 // *
 // ***************************************************************************************
@@ -1680,7 +1680,7 @@ boolean AuxLightControlModule(timed_event teEvent[], boolean booSensors[], boole
           }
           if (door == 1)
           {
-            teEvent[1].set(tmeCurrentTime, 0, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
+            teEvent[1].set(tmeCurrentTime, 1, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
           }
         }
       }

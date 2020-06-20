@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.52c
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.52d
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: EQK6}Lc`:Eg>
 // *
 // ***************************************************************************************
@@ -1427,7 +1427,7 @@ void vdPacificaishAnimationFrontClose(timed_event teEvent[], int intPos, unsigne
 // This animation was my personal chalenge to see if I could make a similar animation that was
 // provided in the demos and examples, as PacificaAnimation, of the FastLed library.
 {
-  teEvent[intPos].set(tmeCurrentTime, AUXDOORLINGER, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, true);
+  teEvent[intPos].set(tmeCurrentTime, AUXDOORLINGER, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
 
   // Set the background color.
   teEvent[intPos].set(tmeCurrentTime, 50, 1000, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, false);

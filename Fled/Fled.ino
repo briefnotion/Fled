@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.52
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.52a
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: EQK6}Lc`:Eg>
 // *
 // ***************************************************************************************
@@ -1187,7 +1187,7 @@ void vdDoorOpenAnimationBack(timed_event teEvent[], int intPos, unsigned long tm
   teEvent[intPos].set(tmeCurrentTime, intTm , 0, 0, AnEvSchedule, AnTavdPacificaishBack, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
 
   // Clear set background to door open colors.
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(255, 255, 255), CRGB(0, 0, 0), CRGB(255, 64, 64), s0As, 4, false, false);
+  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(255, 255, 255), CRGB(0, 0, 0), CRGB(255, 64, 64), s0As, s0As + 4, false, false);
   teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(255, 64, 64), CRGB(0, 0, 0), CRGB(25, 0, 0), 5, 10, false, false);
   teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(25, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 11, s0Ae - 6, false, false);
   teEvent[intPos].set(tmeCurrentTime, intTm + 500, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(25, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Ae - 5, s0Ae, false, false);
@@ -1255,10 +1255,10 @@ int intTm;
   // Door Open Animation
   intTm = 100; intDur = 500; intSp = 10; intCt = 60;
 
-  teEvent[intPos].set(tmeCurrentTime, intTm , 0, 0, AnEvSchedule, AnTavdPacificaishBack, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
+  teEvent[intPos].set(tmeCurrentTime, intTm , 0, 0, AnEvSchedule, AnTavdPacificaishFront, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
 
   // Clear set background to door open colors.
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(255, 255, 255), CRGB(0, 0, 0), CRGB(255, 64, 64), s1As, 4, false, false);
+  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(255, 255, 255), CRGB(0, 0, 0), CRGB(255, 64, 64), s1As, s1As + 4, false, false);
   teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(255, 64, 64), CRGB(0, 0, 0), CRGB(25, 0, 0), 5, 10, false, false);
   teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(25, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 11, s1Ae - 6, false, false);
   teEvent[intPos].set(tmeCurrentTime, intTm + 500, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(25, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Ae - 5, s1Ae, false, false);
@@ -1268,7 +1268,7 @@ int intTm;
   teEvent[intPos].set(tmeCurrentTime, intTm, 6000, 280, AnEvSweep, AnPiPulse, CRGB(15, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, true, false);
 
   intTm = intAnTmDly(intTm, intDur, intCt, intSp);
-  teEvent[intPos].set(tmeCurrentTime, intTm, 0, 0, AnEvSchedule, AnTaDoorOpenBack01, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
+  teEvent[intPos].set(tmeCurrentTime, intTm, 0, 0, AnEvSchedule, AnTaDoorOpenFront01, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
 }
 
 void vdDoorOpenAnimationFront01(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
@@ -1294,7 +1294,7 @@ void vdDoorOpenAnimationFront01(timed_event teEvent[], int intPos, unsigned long
   teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(128, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, false, true);
 
   intTm = intAnTmDly(intTm, intDur, intCt, intSp);
-  teEvent[intPos].set(tmeCurrentTime, intTm, 0, 0, AnEvSchedule, AnTaDoorOpenBack02, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
+  teEvent[intPos].set(tmeCurrentTime, intTm, 0, 0, AnEvSchedule, AnTaDoorOpenFront02, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
 }
 
 void vdDoorOpenAnimationFront02(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
@@ -1370,7 +1370,7 @@ void vdDoorCloseAnimationFront(timed_event teEvent[], int intPos, unsigned long 
   teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, false, true);
   //teEvent[intPos].set(tmeCurrentTime, intTm + 1500, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, true);
 
-  teEvent[intPos].set(tmeCurrentTime, intTm + 2000, 0, 0, AnEvSchedule, AnTavdPaAnimBackClose, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
+  teEvent[intPos].set(tmeCurrentTime, intTm + 2000, 0, 0, AnEvSchedule, AnTavdPaAnimFrontClose, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
 }
 
 // -------------------------------------------------------------------------------------
@@ -1631,12 +1631,12 @@ void teGLOBAL(timed_event teEvent[], unsigned long tmeCurrentTime)
 // -------------------------------------------------------------------------------------
 //  AuxLightControlModule
 
-boolean AuxLightControlModule(timed_event teEvent[], boolean booIsOn, hardware_monitor hwmDoor[], unsigned long tmeCurrentTime)
+boolean AuxLightControlModule(timed_event teEvent[], boolean booSensors[], boolean booIsOn, hardware_monitor hwmDoor[], unsigned long tmeCurrentTime)
 {
   int oncount = 0;
   for (int door=0; door < NUM_SWITCHES; door++)
   {
-    if (hwmDoor[door].booVALUE == true)
+    if (booSensors[door] == true)
     {
       oncount++;
     }
@@ -1651,7 +1651,7 @@ boolean AuxLightControlModule(timed_event teEvent[], boolean booIsOn, hardware_m
       {
         if (door == 0)
         {
-          vdClearAllTimedEvent(teEvent, 1, s0Bs, s0Be);
+          vdClearAllTimedEvent(teEvent, 0, s0Bs, s0Be);
           vdPacificaishAnimationBack(teEvent, 0, tmeCurrentTime);
         }
         if (door == 1)
@@ -1799,58 +1799,58 @@ void loop()
 
     // --- Grabbing Data From Hardware inputs ---
 
+    // Sensor Array (QUICK FIX)
+    boolean booSensors[NUM_SWITCHES];
+
+    booSensors[0] = digitalRead(SWITCH_PINs0);
+    booSensors[1] = digitalRead(SWITCH_PINs1);
+    booSensors[2] = digitalRead(SWITCH_PINs2);
+    booSensors[3] = digitalRead(SWITCH_PINs3);
+
     // Check door 1 for changes.
     // Back Door
-    boolean booSensorReads0 = digitalRead(SWITCH_PINs0);
-    //boolean booSensorReads0 = LOW;
-    if (hwDoors[0].changed(booSensorReads0))
+    if (hwDoors[0].changed(booSensors[0]))
     {
-      if (booSensorReads0 == HIGH)
+      if (booSensors[0] == HIGH)
       {
         vdClearAllTimedEvent(teEvent, 0, s0As, s0Be);
         vdDoorOpenAnimationBack(teEvent, 0, tmeCurrentMillis);
-        boAuxLightsIsOn = AuxLightControlModule(teEvent, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
+        boAuxLightsIsOn = AuxLightControlModule(teEvent, booSensors, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
       }
       else
       {
         vdClearAllTimedEvent(teEvent, 0, s0As, s0Ae);
         vdDoorCloseAnimationBack(teEvent, 0, tmeCurrentMillis);
-        boAuxLightsIsOn = AuxLightControlModule(teEvent, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
+        boAuxLightsIsOn = AuxLightControlModule(teEvent, booSensors, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
       }
     }
 
     // Check door 2 for changes.
     // Front Door
-    boolean booSensorReads1 = digitalRead(SWITCH_PINs1);
-    //boolean booSensorReads1 = LOW;
-    if (hwDoors[1].changed(booSensorReads1))
+    if (hwDoors[1].changed(booSensors[1]))
     {
-      if (booSensorReads1 == HIGH)
+      if (booSensors[1] == HIGH)
       {
         vdClearAllTimedEvent(teEvent, 1, s1As, s1Be);
         vdDoorOpenAnimationFront(teEvent, 1, tmeCurrentMillis);
-        boAuxLightsIsOn = AuxLightControlModule(teEvent, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
+        boAuxLightsIsOn = AuxLightControlModule(teEvent, booSensors, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
       }
       else
       {
         vdClearAllTimedEvent(teEvent, 1, s1As, s1Ae);
         vdDoorCloseAnimationFront(teEvent, 1, tmeCurrentMillis);
-        boAuxLightsIsOn = AuxLightControlModule(teEvent, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
+        boAuxLightsIsOn = AuxLightControlModule(teEvent, booSensors, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
       }
     }
 
-    boolean booSensorReads2 = digitalRead(SWITCH_PINs2);
-    //boolean booSensorReads2 = LOW;
-    if (hwDoors[2].changed(booSensorReads2))
+    if (hwDoors[2].changed(booSensors[2]))
     {
-      boAuxLightsIsOn = AuxLightControlModule(teEvent, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
+      boAuxLightsIsOn = AuxLightControlModule(teEvent, booSensors, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
     }
 
-    boolean booSensorReads3 = digitalRead(SWITCH_PINs3);
-    //boolean booSensorReads3 = LOW;
-    if (hwDoors[3].changed(booSensorReads3))
+    if (hwDoors[3].changed(booSensors[3]))
     {
-      boAuxLightsIsOn = AuxLightControlModule(teEvent, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
+      boAuxLightsIsOn = AuxLightControlModule(teEvent, booSensors, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
     }
 
     // --- Check and Execute Timed Events That Are Ready ---

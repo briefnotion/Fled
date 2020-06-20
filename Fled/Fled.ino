@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.50B
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.52
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: EQK6}Lc`:Eg>
 // *
 // ***************************************************************************************
@@ -56,6 +56,22 @@
 // *    https://github.com/briefnotion/Fled/blob/master/Description%20and%20Background.txt
 // *
 // ***************************************************************************************
+// *
+// *  V 0.52 _200620
+// *      - Corrected several problems, mostly, focusing on the having the animations 
+// *          behave the way I envisioned them. As well as removing inconsistencies.
+// *      - Testing is getting more and more difficult because so many of the animations 
+// *          now work with each other on multiple levels.  I have only one short test 
+// *          strip, with only one switch.  I do my best to prepare, but as it is now, 
+// *          and as it will be from now on, I can't forsee all of the problems before 
+// *          without seeing the lights in action and live. And, even then, changes will 
+// *          be restricted and slow. in all practicallity, this is the end of Step 1. 
+// *          It is what it is. Only bug fixes to this step will be made. Unless, of 
+// *          course, I think of something truely amazing. 
+// *
+// *  V 0.51 _200618
+// *      - I didn't like the ways some animations behaved. So changes where made.
+// *      - Coded but did not implement the Global Event "AnEvClear"
 // *
 // *  V 0.50 _200613-17
 // *      - "break;" statatements added to all applicable "switch" statements. The filthy 
@@ -328,6 +344,7 @@
 // LED data pins to transmit on off and colors for strip s0 and s1
 #define DATA_PINs0      3       // 3 // A3 - Data Pin for Strip 1
 #define DATA_PINs1      4       // 4 // A4 - Data Pin for Strip 2
+
 
 // Amount of LEDs per strip s0 and s1.
 #define NUM_LEDSs0    123 //71
@@ -1078,7 +1095,9 @@ void vdClearAllTimedEvent(timed_event teEvent[], int intPos, int intStartPos, in
 //byte bytLEDAnimation,
 //CRGB crgbColor,
 //int intStartPos,
-//int intEndPos
+//int intEndPos,
+//boolean booRepeat,
+//boolean booClearOnEnd,
 
 // -------------------------------------------------------------------------------------
 int intAnTmDly(int intTm, int intDur, int intCt, int intSp)
@@ -1148,16 +1167,6 @@ void vdAlertAnimation(timed_event teEvent, unsigned long tmeCurrentTime)
   int intCt;
   int intSp;
 }
-
-
-// -------------------------------------------------------------------------------------
-void vdFlashAnimation(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
-{
-  int intTm;
-  int intDur;
-  int intCt;
-  int intSp;
-}
 */
 
 // -------------------------------------------------------------------------------------
@@ -1173,9 +1182,11 @@ void vdDoorOpenAnimationBack(timed_event teEvent[], int intPos, unsigned long tm
   int intCt;
   int intSp;
   // Door Open Animation
+  intTm = 100; intDur = 500; intSp = 10; intCt = 60;
+
+  teEvent[intPos].set(tmeCurrentTime, intTm , 0, 0, AnEvSchedule, AnTavdPacificaishBack, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
 
   // Clear set background to door open colors.
-  intTm = 100; intDur = 500; intSp = 10; intCt = 60;
   teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(255, 255, 255), CRGB(0, 0, 0), CRGB(255, 64, 64), s0As, 4, false, false);
   teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(255, 64, 64), CRGB(0, 0, 0), CRGB(25, 0, 0), 5, 10, false, false);
   teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(25, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 11, s0Ae - 6, false, false);
@@ -1192,13 +1203,14 @@ void vdDoorOpenAnimationBack(timed_event teEvent[], int intPos, unsigned long tm
 void vdDoorOpenAnimationBack01(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
 // Door Open Back Stage 1
 {
-  int intTm = 0;
+  int intTm = 50;
   int intDur;
   int intCt;
   int intSp;
 
-  teEvent[intPos].set(tmeCurrentTime, intTm + 100, 0, 0, AnEvSchedule, AnTavdPacificaishBack, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
-  //  BUG:  Previous line not running if intTm is set to 0 or less.
+  //teEvent[intPos].set(tmeCurrentTime, intTm , 0, 0, AnEvSchedule, AnTavdPacificaishBack, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
+  //  BUG:  Previous line not running if intTm is set to 0 or less.  Seems related to the previous calling AnEvSchedule event and this event running at the 
+  //          same exact time.  if intTm is set to 0, all events in vdDoorOpenAnimationFront01 do not run. Not, just the AnTavdPacificaishFront.
 
   // Flash
   intDur = 100; intSp = 2; intCt = 71;
@@ -1236,14 +1248,16 @@ void vdDoorOpenAnimationFront(timed_event teEvent[], int intPos, unsigned long t
 
 // Door is open, engage safety lights.
 {
-  int intTm;
+int intTm;
   int intDur;
   int intCt;
   int intSp;
   // Door Open Animation
+  intTm = 100; intDur = 500; intSp = 10; intCt = 60;
+
+  teEvent[intPos].set(tmeCurrentTime, intTm , 0, 0, AnEvSchedule, AnTavdPacificaishBack, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
 
   // Clear set background to door open colors.
-  intTm = 100; intDur = 500; intSp = 10; intCt = 60;
   teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(255, 255, 255), CRGB(0, 0, 0), CRGB(255, 64, 64), s1As, 4, false, false);
   teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(255, 64, 64), CRGB(0, 0, 0), CRGB(25, 0, 0), 5, 10, false, false);
   teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(25, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 11, s1Ae - 6, false, false);
@@ -1254,19 +1268,20 @@ void vdDoorOpenAnimationFront(timed_event teEvent[], int intPos, unsigned long t
   teEvent[intPos].set(tmeCurrentTime, intTm, 6000, 280, AnEvSweep, AnPiPulse, CRGB(15, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, true, false);
 
   intTm = intAnTmDly(intTm, intDur, intCt, intSp);
-  teEvent[intPos].set(tmeCurrentTime, intTm, 0, 0, AnEvSchedule, AnTaDoorOpenFront01, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
+  teEvent[intPos].set(tmeCurrentTime, intTm, 0, 0, AnEvSchedule, AnTaDoorOpenBack01, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
 }
 
 void vdDoorOpenAnimationFront01(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
 // Door Open Front Stage 1
 {
-  int intTm = 0;
+  int intTm = 50;
   int intDur;
   int intCt;
   int intSp;
 
-  teEvent[intPos].set(tmeCurrentTime, intTm + 100, 0, 0, AnEvSchedule, AnTavdPacificaishFront, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
-  //  BUG:  Previous line not running if intTm is set to 0 or less.
+  //teEvent[intPos].set(tmeCurrentTime, intTm , 0, 0, AnEvSchedule, AnTavdPacificaishBack, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
+  //  BUG:  Previous line not running if intTm is set to 0 or less.  Seems related to the previous calling AnEvSchedule event and this event running at the 
+  //          same exact time.  if intTm is set to 0, all events in vdDoorOpenAnimationFront01 do not run. Not, just the AnTavdPacificaishFront.
 
   // Flash
   intDur = 100; intSp = 2; intCt = 71;
@@ -1279,7 +1294,7 @@ void vdDoorOpenAnimationFront01(timed_event teEvent[], int intPos, unsigned long
   teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(128, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, false, true);
 
   intTm = intAnTmDly(intTm, intDur, intCt, intSp);
-  teEvent[intPos].set(tmeCurrentTime, intTm, 0, 0, AnEvSchedule, AnTaDoorOpenFront02, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
+  teEvent[intPos].set(tmeCurrentTime, intTm, 0, 0, AnEvSchedule, AnTaDoorOpenBack02, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
 }
 
 void vdDoorOpenAnimationFront02(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
@@ -1307,24 +1322,25 @@ void vdDoorCloseAnimationBack(timed_event teEvent[], int intPos, unsigned long t
   int intCt;
   int intSp;
 
-  // Clear and Pulse colors background to green then ending in blueish, starting with the center.
-  intTm = 200; intDur = 750; intSp = 30; intCt = 36;
-  //teEvent[intPos].set(tmeCurrentTime, 0, 2000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
+  // Stop the currently running Pacificaish animation.
+  teEvent[intPos].set(tmeCurrentTime, 0, 6000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
 
-  teEvent[intPos].set(tmeCurrentTime, 150, 100, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, false, true);
-  teEvent[intPos].set(tmeCurrentTime, 150 + 1500, 100, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Be, s0Bs, false, true);
+  // Clear and Pulse colors background to green then ending in blueish, starting with the center.
+  intTm = 50; intDur = 750; intSp = 30; intCt = 36;
+
+  teEvent[intPos].set(tmeCurrentTime, intTm, 100, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, false, true);
+  teEvent[intPos].set(tmeCurrentTime, intTm + 1500, 100, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Be, s0Bs, false, true);
  
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulseTo, CRGB(0, 255, 0), CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, false, true);
-  teEvent[intPos].set(tmeCurrentTime, intTm + 1500, intDur, intSp, AnEvSweep, AnPiPulseTo, CRGB(0, 255, 0), CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Be, s0Bs, false, true);
+  teEvent[intPos].set(tmeCurrentTime, intTm + 50, intDur, intSp, AnEvSweep, AnPiPulseTo, CRGB(0, 255, 0), CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, false, true);
+  teEvent[intPos].set(tmeCurrentTime, intTm + 50 + 1500, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(0, 255, 0), CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Be, s0Bs, false, true);
  
   // Fade remaining colors out.
   intTm = intAnTmDly(intTm, intDur, intCt, intSp) + 300;
   intDur = 5000; intSp = 100; intCt = 36;
   teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, false, true);
-  teEvent[intPos].set(tmeCurrentTime, intTm + 1500, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Be, s0Bs, false, true);
+  //teEvent[intPos].set(tmeCurrentTime, intTm + 1500, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Be, s0Bs, false, true);
 
   teEvent[intPos].set(tmeCurrentTime, intTm + 2000, 0, 0, AnEvSchedule, AnTavdPaAnimBackClose, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
-
 }
 
 // -------------------------------------------------------------------------------------
@@ -1336,22 +1352,25 @@ void vdDoorCloseAnimationFront(timed_event teEvent[], int intPos, unsigned long 
   int intCt;
   int intSp;
 
-  // Clear and Pulse colors background to green then ending in blueish, starting with the center.
-  intTm = 200; intDur = 750; intSp = 30; intCt = 36;
+  // Stop the currently running Pacificaish animation.
+  teEvent[intPos].set(tmeCurrentTime, 0, 6000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
 
-  teEvent[intPos].set(tmeCurrentTime, 150, 100, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, false, true);
-  teEvent[intPos].set(tmeCurrentTime, 150 + 1980, 100, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, true);
+  // Clear and Pulse colors background to green then ending in blueish, starting with the center.
+  intTm = 50; intDur = 750; intSp = 30; intCt = 36;
+
+  teEvent[intPos].set(tmeCurrentTime, intTm, 100, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, false, true);
+  teEvent[intPos].set(tmeCurrentTime, intTm + 1500, 100, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, true);
  
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulseTo, CRGB(0, 255, 0), CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, false, true);
-  teEvent[intPos].set(tmeCurrentTime, intTm + 1980, intDur, intSp, AnEvSweep, AnPiPulseTo, CRGB(0, 255, 0), CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, true);
+  teEvent[intPos].set(tmeCurrentTime, intTm + 50, intDur, intSp, AnEvSweep, AnPiPulseTo, CRGB(0, 255, 0), CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, false, true);
+  teEvent[intPos].set(tmeCurrentTime, intTm + 50 + 1500, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(0, 255, 0), CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, true);
  
   // Fade remaining colors out.
   intTm = intAnTmDly(intTm, intDur, intCt, intSp) + 300;
   intDur = 5000; intSp = 100; intCt = 36;
   teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, false, true);
-  teEvent[intPos].set(tmeCurrentTime, intTm + 1980, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, true);
+  //teEvent[intPos].set(tmeCurrentTime, intTm + 1500, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, true);
 
-  teEvent[intPos].set(tmeCurrentTime, intTm + 2000, 0, 0, AnEvSchedule, AnTavdPaAnimFrontClose, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
+  teEvent[intPos].set(tmeCurrentTime, intTm + 2000, 0, 0, AnEvSchedule, AnTavdPaAnimBackClose, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
 }
 
 // -------------------------------------------------------------------------------------
@@ -1362,7 +1381,7 @@ void vdPacificaishAnimationBack(timed_event teEvent[], int intPos, unsigned long
 // provided in the demos and examples, as PacificaAnimation, of the FastLed library.
 {
   // Set the background color.
-  teEvent[intPos].set(tmeCurrentTime, 1000, 500, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 0, 60), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Be, s0Bs, false, false);
+  teEvent[intPos].set(tmeCurrentTime, 1000, 500, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 0, 60), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, false);
 
   // The waves.
   teEvent[intPos].set(tmeCurrentTime, 2000, 3500, 250, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
@@ -1391,18 +1410,16 @@ void vdPacificaishAnimationBackClose(timed_event teEvent[], int intPos, unsigned
 // This animation was my personal chalenge to see if I could make a similar animation that was
 // provided in the demos and examples, as PacificaAnimation, of the FastLed library.
 {
-  teEvent[intPos].set(tmeCurrentTime, 500, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
+  teEvent[intPos].set(tmeCurrentTime, AUXDOORLINGER, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
 
   // Set the background color.
-  teEvent[intPos].set(tmeCurrentTime, 1000, 500, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Be, s0Bs, false, false);
+  teEvent[intPos].set(tmeCurrentTime, 50, 1000, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, false);
 
   // The waves.
   teEvent[intPos].set(tmeCurrentTime, 2000, 3500, 250, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
   teEvent[intPos].set(tmeCurrentTime, 2000, 1500, 150, AnEvSweep, AnPiPulse, CRGB(16, 20, 0), CRGB(16, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
   teEvent[intPos].set(tmeCurrentTime, 2000, 3600, 270, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
   teEvent[intPos].set(tmeCurrentTime, 2000, 3200, 200, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-
-  teEvent[intPos].set(tmeCurrentTime, AUXDOORLINGER, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
 }
 
 // -------------------------------------------------------------------------------------
@@ -1410,18 +1427,16 @@ void vdPacificaishAnimationFrontClose(timed_event teEvent[], int intPos, unsigne
 // This animation was my personal chalenge to see if I could make a similar animation that was
 // provided in the demos and examples, as PacificaAnimation, of the FastLed library.
 {
-  teEvent[intPos].set(tmeCurrentTime, 500, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, true);
+  teEvent[intPos].set(tmeCurrentTime, AUXDOORLINGER, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, true);
 
   // Set the background color.
-  teEvent[intPos].set(tmeCurrentTime, 1000, 500, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, false);
+  teEvent[intPos].set(tmeCurrentTime, 50, 1000, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, false);
 
   // The waves.
   teEvent[intPos].set(tmeCurrentTime, 2000, 3500, 250, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, 2000, 1500, 150, AnEvSweep, AnPiPulse, CRGB(16, 20, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, 2000, 1500, 150, AnEvSweep, AnPiPulse, CRGB(16, 20, 0), CRGB(16, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
   teEvent[intPos].set(tmeCurrentTime, 2000, 3600, 270, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
   teEvent[intPos].set(tmeCurrentTime, 2000, 3200, 200, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-
-  teEvent[intPos].set(tmeCurrentTime, AUXDOORLINGER, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
 }
 
 // -------------------------------------------------------------------------------------
@@ -1451,6 +1466,8 @@ void teGLOBAL(timed_event teEvent[], unsigned long tmeCurrentTime)
 //  teEvent[0].set(tmeCurrentMillis, X, 0, 0, AnEvSchedule, AnTaDoorCloseBack, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, false);
 //    or      ( X is the values that can be set )
 //  teEvent[0].set(tmeCurrentMillis, X, X, 0, AnEvSchedule, AnEvSetToEnd, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(X, X, X), CRGB(X, X, X), 0, 0, false, false);
+//    or 
+//  teEvent[0].set(tmeCurrentMillis, X, 0, 0, AnEvClear, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), X, X, false, false);
 {
   for (int strip = 0; strip < NUM_STRIPS; strip++)
   {
@@ -1462,12 +1479,18 @@ void teGLOBAL(timed_event teEvent[], unsigned long tmeCurrentTime)
         //  now)
         switch (teEvent[strip].teDATA[event].bytANIMATION)
         {
+          case AnEvClear:
+          {
+            teEvent[strip].teDATA[event].booCOMPLETE = true;
+            teEvent[strip].ClearAll(teEvent[strip].teDATA[event].intSTARTPOS,teEvent[strip].teDATA[event].intENDPOS);
+            break;
+          }
           case AnEvSchedule:
           //  Schedule an animation
-          {              
+          {  
             // Clear the Event whether the event ran or not.
             teEvent[strip].teDATA[event].booCOMPLETE = true;
-
+            
             switch (teEvent[strip].teDATA[event].bytLEDANIMATION)
             // Activate an Animation Set
             {
@@ -1554,7 +1577,7 @@ void teGLOBAL(timed_event teEvent[], unsigned long tmeCurrentTime)
           {
             // Clear the Event whether the event ran or not.
             teEvent[strip].teDATA[event].booCOMPLETE = true;
-
+     
             // Is the Event we are processing within the event?
 
             for (int eventscan = 0; eventscan < NUM_TIMED_EVENTS; eventscan++)
@@ -1628,10 +1651,12 @@ boolean AuxLightControlModule(timed_event teEvent[], boolean booIsOn, hardware_m
       {
         if (door == 0)
         {
+          vdClearAllTimedEvent(teEvent, 1, s0Bs, s0Be);
           vdPacificaishAnimationBack(teEvent, 0, tmeCurrentTime);
         }
         if (door == 1)
         {
+          vdClearAllTimedEvent(teEvent, 1, s1Bs, s1Be);
           vdPacificaishAnimationFront(teEvent, 1, tmeCurrentTime);
         }
       }

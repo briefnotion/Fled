@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.52d
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.53
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: EQK6}Lc`:Eg>
 // *
 // ***************************************************************************************
@@ -57,6 +57,15 @@
 // *
 // ***************************************************************************************
 // *
+// *  V 0.53 _200630-0708
+// *      - Increased rear door amber animation.
+// *      - Decrease debounce on switches by 10x.
+// *      - Start clear animation after start off previous animations (500ms error.) 
+// *          I'd have to think to do that.  Rather than that, adding an extra clear 
+// *          animation 14 seconds after the first as backup.
+// *      - Added random numers to the Paificaish animations to make the waves looks 
+// *          less organized. 
+// *        
 // *  V 0.52 _200620
 // *      - Corrected several problems, mostly, focusing on the having the animations 
 // *          behave the way I envisioned them. As well as removing inconsistencies.
@@ -376,11 +385,12 @@
 */
 
 // On off buttons, door sensors, switches.
-#define SWITCH_PINs0  8       // 8 // A8 - Hardware Open Close Door Sensor 1
-#define SWITCH_PINs1  9       // 9 // A9 - Hardware Open Close Door Sensor 2
-#define SWITCH_PINs2  10      // 9 // A9 - Hardware Open Close Door Sensor 3
-#define SWITCH_PINs3  11      // 9 // A9 - Hardware Open Close Door Sensor 3
-#define AUXDOORLINGER 15000    // How long the Door lights stay on after close
+#define SWITCH_PINs0    8       // 8 // A8 - Hardware Open Close Door Sensor 1
+#define SWITCH_PINs1    9       // 9 // A9 - Hardware Open Close Door Sensor 2
+#define SWITCH_PINs2    10      // 9 // A9 - Hardware Open Close Door Sensor 3
+#define SWITCH_PINs3    11      // 9 // A9 - Hardware Open Close Door Sensor 3
+#define AUXDRLINGERFRT  15000    // How long the Front Door lights stay on after close
+#define AUXDRLINGERBCK  25000    // How long the Back Door lights stay on after close
 
 // -------------------------------------------------------------------------------------
 // SOFTWARE MANAGEMENT
@@ -1384,10 +1394,10 @@ void vdPacificaishAnimationBack(timed_event teEvent[], int intPos, unsigned long
   teEvent[intPos].set(tmeCurrentTime, 1000, 500, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 0, 60), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, false);
 
   // The waves.
-  teEvent[intPos].set(tmeCurrentTime, 2000, 3500, 250, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, 2000, 1500, 150, AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, 2000, 3600, 270, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, 2000, 3200, 200, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3500, 250, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 1500, 150, AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3600, 270, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3200, 200, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
 }
 // -------------------------------------------------------------------------------------
 void vdPacificaishAnimationFront(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
@@ -1398,10 +1408,10 @@ void vdPacificaishAnimationFront(timed_event teEvent[], int intPos, unsigned lon
   teEvent[intPos].set(tmeCurrentTime, 1000, 500, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 0, 60), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, false);
 
   // The waves.
-  teEvent[intPos].set(tmeCurrentTime, 2000, 3500, 250, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, 2000, 1500, 150, AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, 2000, 3600, 270, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, 2000, 3200, 200, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3500, 250, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 1500, 150, AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3600, 270, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3200, 200, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
 }
 
 // -------------------------------------------------------------------------------------
@@ -1410,16 +1420,16 @@ void vdPacificaishAnimationBackClose(timed_event teEvent[], int intPos, unsigned
 // This animation was my personal chalenge to see if I could make a similar animation that was
 // provided in the demos and examples, as PacificaAnimation, of the FastLed library.
 {
-  teEvent[intPos].set(tmeCurrentTime, AUXDOORLINGER, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
+  teEvent[intPos].set(tmeCurrentTime, AUXDRLINGERBCK, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
 
   // Set the background color.
   teEvent[intPos].set(tmeCurrentTime, 50, 1000, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, false);
 
   // The waves.
-  teEvent[intPos].set(tmeCurrentTime, 2000, 3500, 250, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, 2000, 1500, 150, AnEvSweep, AnPiPulse, CRGB(16, 20, 0), CRGB(16, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, 2000, 3600, 270, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, 2000, 3200, 200, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3500, 250, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 1500, 150, AnEvSweep, AnPiPulse, CRGB(16, 20, 0), CRGB(16, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3600, 270, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3200, 200, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
 }
 
 // -------------------------------------------------------------------------------------
@@ -1427,16 +1437,16 @@ void vdPacificaishAnimationFrontClose(timed_event teEvent[], int intPos, unsigne
 // This animation was my personal chalenge to see if I could make a similar animation that was
 // provided in the demos and examples, as PacificaAnimation, of the FastLed library.
 {
-  teEvent[intPos].set(tmeCurrentTime, AUXDOORLINGER, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
+  teEvent[intPos].set(tmeCurrentTime, AUXDRLINGERFRT, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
 
   // Set the background color.
   teEvent[intPos].set(tmeCurrentTime, 50, 1000, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, false);
 
   // The waves.
-  teEvent[intPos].set(tmeCurrentTime, 2000, 3500, 250, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, 2000, 1500, 150, AnEvSweep, AnPiPulse, CRGB(16, 20, 0), CRGB(16, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, 2000, 3600, 270, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, 2000, 3200, 200, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3500, 250, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 1500, 150, AnEvSweep, AnPiPulse, CRGB(16, 20, 0), CRGB(16, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3600, 270, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3200, 200, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
 }
 
 // -------------------------------------------------------------------------------------
@@ -1451,10 +1461,10 @@ void vdPacificaishAnimationBackTest(timed_event teEvent[], int intPos, unsigned 
 
   // The waves.
 
-  teEvent[intPos].set(tmeCurrentTime, 2000, 3500, 250, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
-  teEvent[intPos].set(tmeCurrentTime, 2000, 1500, 150, AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
-  teEvent[intPos].set(tmeCurrentTime, 2000, 3600, 270, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
-  teEvent[intPos].set(tmeCurrentTime, 2000, 3200, 200, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3500, 250, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 1500, 150, AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3600, 270, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
+  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3200, 200, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
 }
 
 // -------------------------------------------------------------------------------------
@@ -1672,15 +1682,17 @@ boolean AuxLightControlModule(timed_event teEvent[], boolean booSensors[], boole
       if (hwmDoor[door].booVALUE == false)
       {
         // Check recent changes
-        if (hwmDoor[door].tmeCHANGEDETECTEDTIME < (tmeCurrentTime - AUXDOORLINGER))
+        if (hwmDoor[door].tmeCHANGEDETECTEDTIME < (tmeCurrentTime - AUXDRLINGERBCK))
         {
           if (door == 0)
           {
             teEvent[0].set(tmeCurrentTime, 0, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
+            teEvent[0].set(tmeCurrentTime, 0, 15000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
           }
           if (door == 1)
           {
             teEvent[1].set(tmeCurrentTime, 1, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
+            teEvent[1].set(tmeCurrentTime, 1, 15000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
           }
         }
       }
@@ -1744,10 +1756,10 @@ void setup()
   teEvent[1].create(NUM_LEDSs1);
 
   // Define Door Sensors.
-  hwDoors[0].set(SWITCH_PINs0, 500);
-  hwDoors[1].set(SWITCH_PINs1, 500);
-  hwDoors[2].set(SWITCH_PINs2, 500);
-  hwDoors[3].set(SWITCH_PINs3, 500);
+  hwDoors[0].set(SWITCH_PINs0, 50);
+  hwDoors[1].set(SWITCH_PINs1, 50);
+  hwDoors[2].set(SWITCH_PINs2, 50);
+  hwDoors[3].set(SWITCH_PINs3, 50);
 
   /*
     // Define Communications.

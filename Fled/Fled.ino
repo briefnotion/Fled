@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.53
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.54
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: EQK6}Lc`:Eg>
 // *
 // ***************************************************************************************
@@ -56,6 +56,14 @@
 // *    https://github.com/briefnotion/Fled/blob/master/Description%20and%20Background.txt
 // *
 // ***************************************************************************************
+// *
+// *  V 0.54 _200711
+// *      - Random waves from previous update didn't work.  Added randomSeed command to 
+// *          get things started correctly. 
+// *      - 500ms bug is still persistant.  Actually, not a bug at all.  The program is 
+// *          generating new animations before the preveous ones has started.  After the 
+// *          animation queue is full, the new animations are discarded.  Needs thought. 
+// *      - Modified a few of the animations. 
 // *
 // *  V 0.53 _200630-0708
 // *      - Increased rear door amber animation.
@@ -1333,7 +1341,7 @@ void vdDoorCloseAnimationBack(timed_event teEvent[], int intPos, unsigned long t
   int intSp;
 
   // Stop the currently running Pacificaish animation.
-  teEvent[intPos].set(tmeCurrentTime, 0, 6000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
+  teEvent[intPos].set(tmeCurrentTime, 10, 3000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
 
   // Clear and Pulse colors background to green then ending in blueish, starting with the center.
   intTm = 50; intDur = 750; intSp = 30; intCt = 36;
@@ -1363,7 +1371,7 @@ void vdDoorCloseAnimationFront(timed_event teEvent[], int intPos, unsigned long 
   int intSp;
 
   // Stop the currently running Pacificaish animation.
-  teEvent[intPos].set(tmeCurrentTime, 0, 6000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
+  teEvent[intPos].set(tmeCurrentTime, 10, 3000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
 
   // Clear and Pulse colors background to green then ending in blueish, starting with the center.
   intTm = 50; intDur = 750; intSp = 30; intCt = 36;
@@ -1423,7 +1431,7 @@ void vdPacificaishAnimationBackClose(timed_event teEvent[], int intPos, unsigned
   teEvent[intPos].set(tmeCurrentTime, AUXDRLINGERBCK, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
 
   // Set the background color.
-  teEvent[intPos].set(tmeCurrentTime, 50, 1000, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, false);
+  teEvent[intPos].set(tmeCurrentTime, 50, 3000, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, false);
 
   // The waves.
   teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3500, 250, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
@@ -1440,7 +1448,7 @@ void vdPacificaishAnimationFrontClose(timed_event teEvent[], int intPos, unsigne
   teEvent[intPos].set(tmeCurrentTime, AUXDRLINGERFRT, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
 
   // Set the background color.
-  teEvent[intPos].set(tmeCurrentTime, 50, 1000, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, false);
+  teEvent[intPos].set(tmeCurrentTime, 50, 3000, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, false);
 
   // The waves.
   teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3500, 250, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
@@ -1769,6 +1777,9 @@ void setup()
   */
 
   tmeCurrentMillis = millis();
+
+  // Generate Random Seed from time noise.
+  randomSeed(tmeCurrentMillis);
 
   // Open serial communications if in debug mode.
   if (BOOTEST == true)

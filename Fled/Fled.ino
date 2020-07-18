@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.55
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.55a
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: EQK6}Lc`:Eg>
 // *
 // ***************************************************************************************
@@ -1722,12 +1722,12 @@ boolean AuxLightControlModule(timed_event teEvent[], boolean booSensors[], boole
         {
           if (door == 0)
           {
-            teEvent[0].set(tmeCurrentTime, 0, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
+            teEvent[0].set(tmeCurrentTime, 0, 4000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
             teEvent[0].set(tmeCurrentTime, 0, 15000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
           }
           if (door == 1)
           {
-            teEvent[1].set(tmeCurrentTime, 1, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
+            teEvent[1].set(tmeCurrentTime, 1, 4000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
             teEvent[1].set(tmeCurrentTime, 1, 15000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
           }
         }

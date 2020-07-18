@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.54
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.55
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: EQK6}Lc`:Eg>
 // *
 // ***************************************************************************************
@@ -57,9 +57,15 @@
 // *
 // ***************************************************************************************
 // *
+// *  V 0.55 _200717
+// *      - Still no randomness.  Trying another thing.  Random numbers are incredibly 
+// *          difficult to generate.  Perhaps the guys at Arduino should create a 
+// *          random seed function.
+// *      - Changed a few more animations.  An artist's work is never done. 
+// *
 // *  V 0.54 _200711
 // *      - Random waves from previous update didn't work.  Added randomSeed command to 
-// *          get things started correctly. 
+// *          get things started correctly.
 // *      - 500ms bug is still persistant.  Actually, not a bug at all.  The program is 
 // *          generating new animations before the preveous ones has started.  After the 
 // *          animation queue is full, the new animations are discarded.  Needs thought. 
@@ -1087,6 +1093,13 @@ struct hardware_monitor
   }
 };
 
+int intRandomHD(int intBase)
+// Generate a random number between half and double of the base
+{
+  //if (booRandom == false) {booRandom = booRandomSet(millis());}
+  return (random((intBase / 2),(intBase * 2)));
+}
+
 
 // ***************************************************************************************
 // FUNCTION AND PROCEDURES
@@ -1341,7 +1354,7 @@ void vdDoorCloseAnimationBack(timed_event teEvent[], int intPos, unsigned long t
   int intSp;
 
   // Stop the currently running Pacificaish animation.
-  teEvent[intPos].set(tmeCurrentTime, 10, 3000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
+  teEvent[intPos].set(tmeCurrentTime, 10, 6000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
 
   // Clear and Pulse colors background to green then ending in blueish, starting with the center.
   intTm = 50; intDur = 750; intSp = 30; intCt = 36;
@@ -1371,7 +1384,7 @@ void vdDoorCloseAnimationFront(timed_event teEvent[], int intPos, unsigned long 
   int intSp;
 
   // Stop the currently running Pacificaish animation.
-  teEvent[intPos].set(tmeCurrentTime, 10, 3000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
+  teEvent[intPos].set(tmeCurrentTime, 10, 6000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
 
   // Clear and Pulse colors background to green then ending in blueish, starting with the center.
   intTm = 50; intDur = 750; intSp = 30; intCt = 36;
@@ -1402,10 +1415,10 @@ void vdPacificaishAnimationBack(timed_event teEvent[], int intPos, unsigned long
   teEvent[intPos].set(tmeCurrentTime, 1000, 500, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 0, 60), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, false);
 
   // The waves.
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3500, 250, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 1500, 150, AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3600, 270, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3200, 200, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3500), intRandomHD(250), AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(1500), intRandomHD(150), AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3600), intRandomHD(270), AnEvSweep, AnPiPulse, CRGB(20, 200, 180), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3200), intRandomHD(200), AnEvSweep, AnPiPulse, CRGB(60, 200, 140), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
 }
 // -------------------------------------------------------------------------------------
 void vdPacificaishAnimationFront(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
@@ -1416,10 +1429,10 @@ void vdPacificaishAnimationFront(timed_event teEvent[], int intPos, unsigned lon
   teEvent[intPos].set(tmeCurrentTime, 1000, 500, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 0, 60), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, false);
 
   // The waves.
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3500, 250, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 1500, 150, AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3600, 270, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3200, 200, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3500), intRandomHD(250), AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(1500), intRandomHD(150), AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3600), intRandomHD(270), AnEvSweep, AnPiPulse, CRGB(20, 200, 180), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3200), intRandomHD(200), AnEvSweep, AnPiPulse, CRGB(60, 200, 140), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
 }
 
 // -------------------------------------------------------------------------------------
@@ -1434,10 +1447,10 @@ void vdPacificaishAnimationBackClose(timed_event teEvent[], int intPos, unsigned
   teEvent[intPos].set(tmeCurrentTime, 50, 3000, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, false);
 
   // The waves.
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3500, 250, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 1500, 150, AnEvSweep, AnPiPulse, CRGB(16, 20, 0), CRGB(16, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3600, 270, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3200, 200, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3500), intRandomHD(250), AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(1500), intRandomHD(150), AnEvSweep, AnPiPulse, CRGB(16, 20, 0), CRGB(16, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3600), intRandomHD(270), AnEvSweep, AnPiPulse, CRGB(15, 6, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3200), intRandomHD(200), AnEvSweep, AnPiPulse, CRGB(25, 2, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
 }
 
 // -------------------------------------------------------------------------------------
@@ -1451,16 +1464,16 @@ void vdPacificaishAnimationFrontClose(timed_event teEvent[], int intPos, unsigne
   teEvent[intPos].set(tmeCurrentTime, 50, 3000, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, false);
 
   // The waves.
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3500, 250, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 1500, 150, AnEvSweep, AnPiPulse, CRGB(16, 20, 0), CRGB(16, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3600, 270, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3200, 200, AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3500), intRandomHD(250), AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(1500), intRandomHD(150), AnEvSweep, AnPiPulse, CRGB(16, 20, 0), CRGB(16, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3600), intRandomHD(270), AnEvSweep, AnPiPulse, CRGB(15, 6, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3200), intRandomHD(200), AnEvSweep, AnPiPulse, CRGB(25, 2, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
 }
 
 // -------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------
 
-void vdPacificaishAnimationBackTest(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
+void vdPacificaishAnimationOPENTest(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
 // This animation was my personal chalenge to see if I could make a similar animation that was
 // provided in the demos and examples, as PacificaAnimation, of the FastLed library.
 {
@@ -1469,10 +1482,25 @@ void vdPacificaishAnimationBackTest(timed_event teEvent[], int intPos, unsigned 
 
   // The waves.
 
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3500, 250, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 1500, 150, AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3600, 270, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
-  teEvent[intPos].set(tmeCurrentTime, random(250,2000), 3200, 200, AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3500), intRandomHD(250), AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(1500), intRandomHD(150), AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3600), intRandomHD(270), AnEvSweep, AnPiPulse, CRGB(20, 200, 180), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3200), intRandomHD(200), AnEvSweep, AnPiPulse, CRGB(60, 200, 140), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
+}
+
+void vdPacificaishAnimationCLOSETest(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
+// This animation was my personal chalenge to see if I could make a similar animation that was
+// provided in the demos and examples, as PacificaAnimation, of the FastLed library.
+{
+  // Set the background color.
+  teEvent[intPos].set(tmeCurrentTime, 50, 3000, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, false, false);
+
+  // The waves.
+
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3500), intRandomHD(250), AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(1500), intRandomHD(150), AnEvSweep, AnPiPulse, CRGB(16, 20, 0), CRGB(16, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3600), intRandomHD(270), AnEvSweep, AnPiPulse, CRGB(15, 6, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
+  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3200), intRandomHD(200), AnEvSweep, AnPiPulse, CRGB(25, 2, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Be, true, true);
 }
 
 // -------------------------------------------------------------------------------------
@@ -1740,12 +1768,18 @@ unsigned long tmePrevMillis = 0;
 int intRestTime = RESTTIME;  // 16 = 60 fps     // Do not check for update until rest 
                                                 //  time is passed.
 
+//boolean booRandom = false;
+
 
 // ***************************************************************************************
 // MAIN PROGRAM
 // ***************************************************************************************
 void setup()
 {
+  // Generate RandomSeed based on Temperture, Humidity, Air Quality, Gravametric Indifferences, 
+  //  Planatery Alignment, and Current Horoscope Predictions.
+  randomSeed(analogRead(0));
+
   // Define LED Strip.
   FastLED.addLeds<LED_TYPE, DATA_PINs0, COLOR_ORDER>(hwLEDs0, NUM_LEDSs0).setCorrection(TypicalLEDStrip);
   FastLED.addLeds<LED_TYPE, DATA_PINs1, COLOR_ORDER>(hwLEDs1, NUM_LEDSs1).setCorrection(TypicalLEDStrip);
@@ -1777,9 +1811,6 @@ void setup()
   */
 
   tmeCurrentMillis = millis();
-
-  // Generate Random Seed from time noise.
-  randomSeed(tmeCurrentMillis);
 
   // Open serial communications if in debug mode.
   if (BOOTEST == true)
@@ -1837,13 +1868,14 @@ void loop()
       if (booSensors[0] == HIGH)
       {
         vdClearAllTimedEvent(teEvent, 0, s0As, s0Be);
-        vdDoorOpenAnimationBack(teEvent, 0, tmeCurrentMillis);
+        vdDoorOpenAnimationBack(teEvent, 0, tmeCurrentMillis); 
         boAuxLightsIsOn = AuxLightControlModule(teEvent, booSensors, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
       }
       else
       {
         vdClearAllTimedEvent(teEvent, 0, s0As, s0Ae);
         vdDoorCloseAnimationBack(teEvent, 0, tmeCurrentMillis);
+        //vdPacificaishAnimationCLOSETest(teEvent, 0, tmeCurrentMillis); 
         boAuxLightsIsOn = AuxLightControlModule(teEvent, booSensors, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
       }
     }

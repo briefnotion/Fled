@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.55a
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.56a
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: EQK6}Lc`:Eg>
 // *
 // ***************************************************************************************
@@ -56,6 +56,10 @@
 // *    https://github.com/briefnotion/Fled/blob/master/Description%20and%20Background.txt
 // *
 // ***************************************************************************************
+// *
+// *  V 0.56 _200827
+// *      - Created a true false input for animation end event to allow pulse animations 
+// *          to end immediatly or to finish their cycle.
 // *
 // *  V 0.55 _200717
 // *      - Still no randomness.  Trying another thing.  Random numbers are incredibly 
@@ -1512,8 +1516,11 @@ void teGLOBAL(timed_event teEvent[], unsigned long tmeCurrentTime)
 //  teEvent[0].set(tmeCurrentMillis, X, 0, 0, AnEvSchedule, AnTaDoorCloseBack, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, false);
 //    or      ( X is the values that can be set )
 //  teEvent[0].set(tmeCurrentMillis, X, X, 0, AnEvSchedule, AnEvSetToEnd, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(X, X, X), CRGB(X, X, X), 0, 0, false, false);
+//                  if booRepeat set to true then pulse animations will continue till end of cycle.
 //    or 
 //  teEvent[0].set(tmeCurrentMillis, X, 0, 0, AnEvClear, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), X, X, false, false);
+
+// Guide: (tmeCurrentTime, tmeStartInTime, intDuration, intSpeed, bytAnimation, bytLEDAnimation, crgbStart1, crgbDest1, crgbStart2, crgbDest2, intStartPos, intEndPos, booRepeat, booClearOnEnd)
 {
   for (int strip = 0; strip < NUM_STRIPS; strip++)
   {
@@ -1531,6 +1538,7 @@ void teGLOBAL(timed_event teEvent[], unsigned long tmeCurrentTime)
             teEvent[strip].ClearAll(teEvent[strip].teDATA[event].intSTARTPOS,teEvent[strip].teDATA[event].intENDPOS);
             break;
           }
+
           case AnEvSchedule:
           //  Schedule an animation
           {  
@@ -1638,10 +1646,13 @@ void teGLOBAL(timed_event teEvent[], unsigned long tmeCurrentTime)
                       ((teEvent[strip].teDATA[eventscan].intENDPOS >= teEvent[strip].teDATA[event].intSTARTPOS)  
                       && (teEvent[strip].teDATA[eventscan].intENDPOS <= teEvent[strip].teDATA[event].intENDPOS))  )
                 {
+                  // Stop the event.
                   teEvent[strip].teDATA[eventscan].booREPEAT = false;
 
+                  // Check the event we are stopping to make sure its not the event calling the SetToEnd.
                   if (event != eventscan)
                   {
+                    // Manage the Fade Animations to End.
                     if ((teEvent[strip].teDATA[eventscan].bytLEDANIMATION == AnPiFade) ||
                           (teEvent[strip].teDATA[eventscan].bytLEDANIMATION == AnPiFadeDith))
                     {
@@ -1661,6 +1672,26 @@ void teGLOBAL(timed_event teEvent[], unsigned long tmeCurrentTime)
                       teEvent[strip].teDATA[eventscan].crgbCOLORDEST1 = teEvent[strip].teDATA[event].crgbCOLORDEST1;
                       teEvent[strip].teDATA[eventscan].crgbCOLORDEST2 = teEvent[strip].teDATA[event].crgbCOLORDEST2;
                     }
+
+                    // Manage the Pulse Animations to End
+                    if ((teEvent[strip].teDATA[eventscan].bytLEDANIMATION == AnPiPulse) ||
+                          (teEvent[strip].teDATA[eventscan].bytLEDANIMATION == AnPiPulseTo))
+                    {
+                      // Tell the pulse to stop.
+                      if (teEvent[strip].teDATA[event].booREPEAT == false)
+                      {
+                        // For now, we will just kill it and hope another animation clears the artifacts.
+                        // It would be nice to have a gracreful end and let the pixel end its animation,
+                        // but, thats for another time.
+                        teEvent[strip].teDATA[eventscan].booCOMPLETE == true;
+                      }
+
+                      // Pulse will end on its on at end of animation.
+                      /* if (teEvent[strip].teDATA[event].booREPEAT == true)
+                      {
+                      } */
+                    }
+
                   }
                 }
               }
@@ -1735,7 +1766,6 @@ boolean AuxLightControlModule(timed_event teEvent[], boolean booSensors[], boole
     }
     return false;
   }
-
 }
 
 

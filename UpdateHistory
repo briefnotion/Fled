@@ -1,0 +1,292 @@
+// *  V 0.56 _200827
+// *      - Created a true false input for animation end event to allow pulse animations 
+// *          to end immediatly or to finish their cycle.
+// *
+// *  V 0.55 _200717
+// *      - Still no randomness.  Trying another thing.  Random numbers are incredibly 
+// *          difficult to generate.  Perhaps the guys at Arduino should create a 
+// *          random seed function.
+// *      - Changed a few more animations.  An artist's work is never done. 
+// *
+// *  V 0.54 _200711
+// *      - Random waves from previous update didn't work.  Added randomSeed command to 
+// *          get things started correctly.
+// *      - 500ms bug is still persistant.  Actually, not a bug at all.  The program is 
+// *          generating new animations before the preveous ones has started.  After the 
+// *          animation queue is full, the new animations are discarded.  Needs thought. 
+// *      - Modified a few of the animations. 
+// *
+// *  V 0.53 _200630-0708
+// *      - Increased rear door amber animation.
+// *      - Decrease debounce on switches by 10x.
+// *      - Start clear animation after start off previous animations (500ms error.) 
+// *          I'd have to think to do that.  Rather than that, adding an extra clear 
+// *          animation 14 seconds after the first as backup.
+// *      - Added random numers to the Paificaish animations to make the waves looks 
+// *          less organized. 
+// *        
+// *  V 0.52 _200620
+// *      - Corrected several problems, mostly, focusing on the having the animations 
+// *          behave the way I envisioned them. As well as removing inconsistencies.
+// *      - Testing is getting more and more difficult because so many of the animations 
+// *          now work with each other on multiple levels.  I have only one short test 
+// *          strip, with only one switch.  I do my best to prepare, but as it is now, 
+// *          and as it will be from now on, I can't forsee all of the problems before 
+// *          without seeing the lights in action and live. And, even then, changes will 
+// *          be restricted and slow. in all practicallity, this is the end of Step 1. 
+// *          It is what it is. Only bug fixes to this step will be made. Unless, of 
+// *          course, I think of something truely amazing. 
+// *
+// *  V 0.51 _200618
+// *      - I didn't like the ways some animations behaved. So changes where made.
+// *      - Coded but did not implement the Global Event "AnEvClear"
+// *
+// *  V 0.50 _200613-17
+// *      - "break;" statatements added to all applicable "switch" statements. The filthy 
+// *          little mongrels. 
+// *      - Developed a Global event system  "AnEvSchedule", that runs with the existing 
+// *          event system, to allow current animations to run in stages, with less 
+// *          memory and for future Global Event Calls.
+// *      - Created a new global pixel animation named "AnEvSetToEnd".  This event will 
+// *          set all repeating animations to end and fade to destination any pulse 
+// *          types.
+// *      - Pacificaish animation lights will now turn on all strips through the 
+// *          Automatic Auxililary Lighting Control Subsystem Module if any of the doors 
+// *          are open.  And when all the doors are closed, the lights will fade off. 
+// *      - Created new animation for door close and changed some of the animation 
+// *          scripts to manage memory in a better way.
+// *      - I had resorvations about changing the Pacificaish close door animation color 
+// *          from blue to orange because, it looks like the ocean changes to a burning
+// *          lake of lava.  However, the dark military orange, or old school amber, 
+// *          color has very distinctive practical applications. Any new passenger will 
+// *          have some ambiant light to fiddle with their phones, get settled and 
+// *          comfortable, with a light color that should not intefere with me seeing 
+// *          out the windows. These are "safety lights," of course, and not show lights.
+// *          Never forget that.
+// *      - I will need to make changes to the way the two Arduinos are wired, but that 
+// *          is a hardware change. I'll try to post a schematic. 
+// *      - Ok, I really lost track of all the changes and additions. All in all,
+// *          any open door should light up the car like a blistering pulsar. i cant't
+// *          definitivly say if I will like it or not.  We will see.
+// *      - Nearly all of the new code is uncommented and I left many of the debug 
+// *          routines in.  I need to get things working before I clean things up.
+// *      - This compile, "Arduino Nano clone" runs at:
+// *          Sketch uses 20456 bytes (66%) of program storage space. Maximum is 30720 
+// *             bytes.
+// *          Low memory available, stability problems may occur.
+// *          Global variables use 1722 bytes (84%) of dynamic memory, leaving 326 bytes 
+// *            for local variables. Maximum is 2048 bytes.
+// *
+// *  V 0.41 _200531
+// *      - Changed some of the Animations. 
+// *      - Added 2 more LED strips that go inside the car above the doors. One for 
+// *         the back and one for the front.
+// *      - Put in Pacificaish Animations for the inside animations when the door is 
+// *          open.  My animation is based on Mark Kriegsman and Mary Corey March's Pacifica
+// *          (https://github.com/FastLED/FastLED/blob/master/examples/Pacifica/Pacifica.ino)
+// *          I didn't copy their code.  Honestly, I can't understand it.  They are using 
+// *          sin and math functions that are way beyond me.  I'm just not that smart.
+// *          If its beyond a linear curve, then its beyond me.  I do thing it looks good 
+// *          though so I put a few pulses on a blue background and played with the numbers
+// *          until I found something I liked.  I will be expanding on this later, but 
+// *          for now, the next step is installing the hardware, which is, at this time,
+// *          sitting on my floor.
+// *      - Made a few more changes to the animations and I am still working on ways to 
+// *          improve memory use. 
+// *      - Lower Frame Rate are noticable now that I am aproachig 250 LEDs on a single 
+// *          Nano Arduino 16mhz clone.  I think I am reaching its LED amount limits while 
+// *          using my style of animation types.
+// *      - I layed down steps when creating this project.  I am nearing the completion
+// *          of the first step.  In about 3 or more new animation types and a few more 
+// *          functions and I will be there.
+// *  
+// *
+// *  V 0.40 _200528
+// *      - Rewrote code to save memory.  Animations will now need to be carefully 
+// *          controlled when being designed.
+// *      - Removed Start Array.
+// *      - Removed Collision Tracker.
+// *      - Removed Lock Array.
+// *      - Rewrote Animation Setup Events.
+// *      - Added a vabible (ClearOnEnd) that will clear an event after complete.
+// *      - Fade starting color and ending color has been removed and replaced with 
+// *          start color and end color.
+// *      - Didn't like that. So I rewote some code to bring it back.
+// *          A new Animatition type called AnPiFadeDith has been added.  It is the 
+// *          same as AnPiFade except that it will consider the Start 2 and Dest 2
+// *          as its end point colors.  
+// *      - Also, added a booClearOnEnd parameter to the event set routine.  If true 
+// *          the event will clear and the pixel color will not be not be maintained.
+// *          If false, then the pixel color will always return to its destination 
+// *          color.  This is important when setting a background color.
+// *      - Also, the dither routine consistantly uses more cycles to run, so use 
+// *          AnPiFade when just setting a static color across pixels.
+// *      - Artifacts have been observed when multiple things are running at once.
+// *          They are controlable by manipulating the event timings.  Problem is 
+// *          still unknown.  That's the half of it.
+// *      - Removed large chunks of code. 
+// *      - Because of the removals, some of the code could stand some optimization
+// *          rewriting.
+// *      - This version is an "as was" version.  More changes will be made after 
+// *          the soon installation and testing of a 3rd and 4th stip.
+// *        
+// *
+// *  V 0.31 _200517
+// *      - Preping for 2 LED strip operation and testing.
+// *      - A few layout changes.
+// *      - a few variable name changes.
+// *      - May have fixed the Fade bug.
+// *      - Removed the Expired varible.  I didnt like it because it was confusing.
+// *      - Fighting for memory.  System seems stable at 91% ram. Unstable at 94%.
+// *          and will not run at 97%.
+// *          Clean house some but there remains much more to do.  Current memory
+// *          improvements were a result of changing the timed event array count to
+// *          13 from 15.  The largest Animation is 9 events so testing on lowering
+// *          this value may help.   Alternativly, I could get rid of the Start Array. 
+// *      - Copied and customized front and back door animations.
+// *      - Modifie Power On animation.
+// *      - Debugged a large amount of code so that 2 animatiion strips will run at
+// *          the same time.
+// *      - Only thing I can thing of doing at this time is install it and see if 
+// *          it works.
+// *
+// *  V 0.30 _200513
+// *      - Adding communication code to recieve commands from a control module.
+// *          It doesn't work fully, but it is part of the next phase of the process so
+// *          I did start testing it.  Leaving it in for now.
+// *      - Spent what felt like the better part of a year trying to rewrite the
+// *          fade animations to not use the StartArray.  First by care and finess,
+// *          second by maticulus calculations, and third by hammer, duck tape, and
+// *          zip ties.  Nothing worked.  Threw the whole thing in the trash can
+// *          and picked out the things that actully worked.  Which are:
+// *      - New compile time definitions for BOOTEST, BOORESTIME, and BOOTESTRESTTIME.
+// *      - Fast, quickly expiring animations should now finish before purging
+// *          themselves.  Although I picked it out of the trash, and it worked before.
+// *          I haven't tested it on this build because it isn't critical with the current
+// *          animations.  It's a part of the flash animation, which is useless anyway
+// *          untill I get a control moudule coded, tested, and built.
+// *      - The one major bug that still exist is within the fade animation.
+// *          If a fade animation is called ontop of another active one, weird things
+// *          happen, glitchy type stuff.
+// *          This error also becomes appearant when calling to animations back to back.
+// *          Even though one should be expired, the problem apears.  I found out I
+// *          can get around this by padding them, but I shouldn't have to.
+// *          Also, a strange backwash is apearant if the LEDs were dithered to another
+// *          color.
+// *      - The program takes up way too much ram.  I need to clean house.  Waiting on
+// *          it for now untill I install my second set of light strips tomorrow or the
+// *          day after.  I would really like to get 3 LED light strips, or about 200 LEDs
+// *          on a single Arduino NANO.  If I could do away with the Start LED array...
+// *          if only.
+// *      - Brought the frame rate back to 1000 - 1 FPS.  I don't know what the frame
+// *          rate is, really.  I think I had to tone it down in the prev build because
+// *          I didn't know about the fade animation bug.
+// *
+// *  V 0.23 _200505
+// *      - Added a Lock LED Start parameter to the events to prevent multiple events on
+// *          the same pixel set, starting at different times, to not step on each other.
+// *      - Changed some varible sizes to save space.  LED counts are now one byte and
+// *          duration and speed is now maxing at 65535ms (2 bytes).
+// *      - For some odd reason, memory was not being saved when using a single LED
+// *          strip.
+// *      - Oh, boy.  Getting complex now.  Got it working and wishing I had some
+// *          Lavian Brandy (https://elite-dangerous.fandom.com/wiki/Lavian_Brandy)
+// *          to celebrate. A Start Color lock array was added and I dumped the old
+// *          count multiple events on same pixel routine, that would drop the first
+// *          event colision.
+// *      - Changed a few animations to reflect the upgrade.
+// *      - Still have no idea how to make Christmas lights.
+// *
+// *  V 0.22 _200427
+// *      - Events crossing over the same pixels now work.  Not perfectly but does work
+// *          when the Events start at the same time.  Will work on this more when I
+// *          feel like making more complex animations.
+// *      - Changed the intRestTime varible to 15.  Turns out, this arduino isn't as much
+// *          of a turtle as I thought it was.  Actually, not a turtle at all.  Anyway,
+// *          updating the refresh rate at 1000 times a second causes glitches as it writes
+// *          over itself in the same frame.  I changed the varible to = 16 to represent
+// *          something like 60FPS.
+// *      - Changed a bunch of other things while trying to debug a/the problem, that was
+// *          described and solved with the change above.
+// *
+// *  V 0.21 _200425
+// *      - Small change, if the door is open when the system is powered on then the door
+// *          open animation will be active.
+// *      - Removed blank lines and added blank lines.
+// *      - Manually word_wrapped some stuff.
+// *
+// *  V 0.20 _200424
+// *      - Rewrote a large portion of the code to change the way the LED animations are
+// *          calculated with respects to time.
+// *          In short, previously the values of the LEDs were calculated in chunks,
+// *          beginning to end, per event animation.  Now, I am calculating the value of
+// *          each pixel from the begging of the LED strip, down to the end of the strip.
+// *          Think of it as moving from an LCD Timex watch, to a progressive scan Sony 4k
+// *          Gaming Monitor.  Ok, so its not that extreme, but in the future, I will be
+// *          able to make more accurate calculations when multiple events overlap the
+// *          same pixel.  We aren't there yet, but we could be.
+// *
+// *  V 0.13 _200420
+// *      - Been a month now because of the pandemic. Finally recieved a more spare parts.
+// *      - Added some basic Animation Definitions to make things easyier to understand.
+// *      - Added a simple routine to calculate time delays in between event animations.
+// *      - Made some cosmetic changes to some of the animations.
+// *
+// *  V 0.12 _200326
+// *      - Fine tuned the door animations till it was visually appealing to me.
+// *      - The behavior of the first state animation changed.  I cant get it to
+// *          work like it was and the way it was prefered.  Hacked together and
+// *          ugly fix that I will just need to get rid of at a later time.
+// *
+// *  V 0.11b _200325
+// *      - Small changes made.  Preparing and installing hardware in test ship.
+// *      - Lost #2 of 3 Arduino boards because of a failure on my part to disconnect one
+// *          of the power leads while updating.  Although it was not powered, a short
+// *          occured and the board was burnt.  I loved you little Nano, but I can't
+// *          fix you.
+// *
+// *  V 0.11 _200319
+// *      - Duplicated portions of the code to handle a second light strip on pin 4
+// *          that will run concurrently with the first light strip.  Testing ended just
+// *          short of running both light strips at the same time.  That was because,
+// *          even though I had a second light strip available, I ran out of power
+// *          feeds.
+// *
+// *  V 0.10b _200318
+// *      - Got some rest.  Fixed a bunch of stuff.
+// *      - Seperated Dest Color to Dest 1 and Dest 2 to dither from start to end.
+// *      - Created Pixil Animation 3.  Same as flash but ends on Color 2.
+// *      - Seperated Event handling of to handle Pixel Animation 1 differently than
+// *          Pixel Animation 2 and 3.  Considering merging Pixel Anination 2 and 3
+// *          then getting around this seperation issue.
+// *
+// *  V 0.10 _200318
+// *    - Rewrote the code when disposing of the LightPath methodology.  This freed up
+// *        enough memory to allow 150 lights within 2k of memory.  I really dont like
+// *        This way of doing things.  It takes more overhead in a starting heap process
+// *        and its much more complex.  Maybe I'm just that I'm in a bad mood because it
+// *        looks so much messier and it took so efing long to debug, only to end up with
+// *        code that does the exact same thing, except worst.  Maybe its good.  I don't
+// *        know.  Had no choice.  Moving on.
+// *
+// *  V 0.03 _200314
+// *    - Corrected a few bugs.  Added a few capabilities.
+// *    - Added a simple switch monitor and animation routines.
+// *    - Set Up some fake triggers and events for testing.
+// *
+// *  V 0.02b _200313
+// *    - Dirty Birdy update:
+// *        The code is a  hot mess.  Nearly completely undocumented.  Crap is
+// *        everywhere.  Stuff is scattered and unorganized.  Varibles are huge
+// *        and nothing is unorganized.  The thing is ...
+// *    - It works.
+// *    - Next step: clean this bird up to and get it ready for a stew.
+// *    0.02c
+// *    - Quickly added comments and started cleaning things up.
+// *    - Tested to see if it still runs as before.  Yep.  All good.
+// *
+// *  V 0.02  _200311
+// *    - Creating main working system.
+// *
+// *  V 0.01  _200309
+// *    - Project Start.

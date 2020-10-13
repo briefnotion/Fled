@@ -57,298 +57,39 @@
 // *
 // ***************************************************************************************
 // *
-// *  V 0.56 _200827
-// *      - Created a true false input for animation end event to allow pulse animations 
-// *          to end immediatly or to finish their cycle.
-// *
-// *  V 0.55 _200717
-// *      - Still no randomness.  Trying another thing.  Random numbers are incredibly 
-// *          difficult to generate.  Perhaps the guys at Arduino should create a 
-// *          random seed function.
-// *      - Changed a few more animations.  An artist's work is never done. 
-// *
-// *  V 0.54 _200711
-// *      - Random waves from previous update didn't work.  Added randomSeed command to 
-// *          get things started correctly.
-// *      - 500ms bug is still persistant.  Actually, not a bug at all.  The program is 
-// *          generating new animations before the preveous ones has started.  After the 
-// *          animation queue is full, the new animations are discarded.  Needs thought. 
-// *      - Modified a few of the animations. 
-// *
-// *  V 0.53 _200630-0708
-// *      - Increased rear door amber animation.
-// *      - Decrease debounce on switches by 10x.
-// *      - Start clear animation after start off previous animations (500ms error.) 
-// *          I'd have to think to do that.  Rather than that, adding an extra clear 
-// *          animation 14 seconds after the first as backup.
-// *      - Added random numers to the Paificaish animations to make the waves looks 
-// *          less organized. 
-// *        
-// *  V 0.52 _200620
-// *      - Corrected several problems, mostly, focusing on the having the animations 
-// *          behave the way I envisioned them. As well as removing inconsistencies.
-// *      - Testing is getting more and more difficult because so many of the animations 
-// *          now work with each other on multiple levels.  I have only one short test 
-// *          strip, with only one switch.  I do my best to prepare, but as it is now, 
-// *          and as it will be from now on, I can't forsee all of the problems before 
-// *          without seeing the lights in action and live. And, even then, changes will 
-// *          be restricted and slow. in all practicallity, this is the end of Step 1. 
-// *          It is what it is. Only bug fixes to this step will be made. Unless, of 
-// *          course, I think of something truely amazing. 
-// *
-// *  V 0.51 _200618
-// *      - I didn't like the ways some animations behaved. So changes where made.
-// *      - Coded but did not implement the Global Event "AnEvClear"
-// *
-// *  V 0.50 _200613-17
-// *      - "break;" statatements added to all applicable "switch" statements. The filthy 
-// *          little mongrels. 
-// *      - Developed a Global event system  "AnEvSchedule", that runs with the existing 
-// *          event system, to allow current animations to run in stages, with less 
-// *          memory and for future Global Event Calls.
-// *      - Created a new global pixel animation named "AnEvSetToEnd".  This event will 
-// *          set all repeating animations to end and fade to destination any pulse 
-// *          types.
-// *      - Pacificaish animation lights will now turn on all strips through the 
-// *          Automatic Auxililary Lighting Control Subsystem Module if any of the doors 
-// *          are open.  And when all the doors are closed, the lights will fade off. 
-// *      - Created new animation for door close and changed some of the animation 
-// *          scripts to manage memory in a better way.
-// *      - I had resorvations about changing the Pacificaish close door animation color 
-// *          from blue to orange because, it looks like the ocean changes to a burning
-// *          lake of lava.  However, the dark military orange, or old school amber, 
-// *          color has very distinctive practical applications. Any new passenger will 
-// *          have some ambiant light to fiddle with their phones, get settled and 
-// *          comfortable, with a light color that should not intefere with me seeing 
-// *          out the windows. These are "safety lights," of course, and not show lights.
-// *          Never forget that.
-// *      - I will need to make changes to the way the two Arduinos are wired, but that 
-// *          is a hardware change. I'll try to post a schematic. 
-// *      - Ok, I really lost track of all the changes and additions. All in all,
-// *          any open door should light up the car like a blistering pulsar. i cant't
-// *          definitivly say if I will like it or not.  We will see.
-// *      - Nearly all of the new code is uncommented and I left many of the debug 
-// *          routines in.  I need to get things working before I clean things up.
-// *      - This compile, "Arduino Nano clone" runs at:
-// *          Sketch uses 20456 bytes (66%) of program storage space. Maximum is 30720 
-// *             bytes.
+// *  V 0.57 _201007
+// *      - THIS CODE VERSION IS UNTESTEST.  Don't install it into a live environment 
+// *          because its untested on anything with more than one switch.
+// *      - After the privous update failed to work, I gave up for a while.
+// *      - Classified and Typed the Strips for managment reasons.
+// *      - Started Consolidating the Animations to run independantly, disregarding their 
+// *          size.
+// *      - Trying to fix problems that I've been putting off for a long time, while 
+// *          working on the on the 500ms bug.  Hopefully the code will be cleaner 
+// *          so that when I create the "watcher" subroutines, I will be able to clear 
+// *          the bug and also correct the incomplete problem I had before.  
+// *          With any luck, the code will be able to be ready before Halloween.  At least 
+// *          I will have animations that will not need to be repeated for strips of 
+// *          different sizes. 
+// *      - Yes, the control panel is delayed again, doesn't matter much when I can't get 
+// *          a proper soldering iron.  I cant't stand soldering, anyway, so I have no 
+// *          desire to get money for something I dont want, don't want to spend, and 
+// *          can't even afford, even if I did have the money for it. 
+// *      - Done away with the AuxLightControlModule and a large chunk of code in the 
+// *          main program.  The removed code was replaced by a new routine called 
+// *          "DoorMonitorAndAnimationControlModule".  Maybe now I am finally rid of the 
+// *          500ms bug.
+// *      - Rewrote and cleaned up most, if not all of the animations.  It still looks 
+// *          like a mess to me.  
+// *      - Added an Individual Strip system to manage the varibles in a better way, also 
+// *          added a trailing manual varible, just to contain the main theme of the 
+// *          strips animation, to be referenced for status. 
+// *      - I really wish the animations were more channel independant.
+// *      - Sketch uses 18944 bytes (61%) of program storage space. Maximum is 30720 
+// *          bytes.
 // *          Low memory available, stability problems may occur.
-// *          Global variables use 1722 bytes (84%) of dynamic memory, leaving 326 bytes 
-// *            for local variables. Maximum is 2048 bytes.
-// *
-// *  V 0.41 _200531
-// *      - Changed some of the Animations. 
-// *      - Added 2 more LED strips that go inside the car above the doors. One for 
-// *         the back and one for the front.
-// *      - Put in Pacificaish Animations for the inside animations when the door is 
-// *          open.  My animation is based on Mark Kriegsman and Mary Corey March's Pacifica
-// *          (https://github.com/FastLED/FastLED/blob/master/examples/Pacifica/Pacifica.ino)
-// *          I didn't copy their code.  Honestly, I can't understand it.  They are using 
-// *          sin and math functions that are way beyond me.  I'm just not that smart.
-// *          If its beyond a linear curve, then its beyond me.  I do thing it looks good 
-// *          though so I put a few pulses on a blue background and played with the numbers
-// *          until I found something I liked.  I will be expanding on this later, but 
-// *          for now, the next step is installing the hardware, which is, at this time,
-// *          sitting on my floor.
-// *      - Made a few more changes to the animations and I am still working on ways to 
-// *          improve memory use. 
-// *      - Lower Frame Rate are noticable now that I am aproachig 250 LEDs on a single 
-// *          Nano Arduino 16mhz clone.  I think I am reaching its LED amount limits while 
-// *          using my style of animation types.
-// *      - I layed down steps when creating this project.  I am nearing the completion
-// *          of the first step.  In about 3 or more new animation types and a few more 
-// *          functions and I will be there.
-// *  
-// *
-// *  V 0.40 _200528
-// *      - Rewrote code to save memory.  Animations will now need to be carefully 
-// *          controlled when being designed.
-// *      - Removed Start Array.
-// *      - Removed Collision Tracker.
-// *      - Removed Lock Array.
-// *      - Rewrote Animation Setup Events.
-// *      - Added a vabible (ClearOnEnd) that will clear an event after complete.
-// *      - Fade starting color and ending color has been removed and replaced with 
-// *          start color and end color.
-// *      - Didn't like that. So I rewote some code to bring it back.
-// *          A new Animatition type called AnPiFadeDith has been added.  It is the 
-// *          same as AnPiFade except that it will consider the Start 2 and Dest 2
-// *          as its end point colors.  
-// *      - Also, added a booClearOnEnd parameter to the event set routine.  If true 
-// *          the event will clear and the pixel color will not be not be maintained.
-// *          If false, then the pixel color will always return to its destination 
-// *          color.  This is important when setting a background color.
-// *      - Also, the dither routine consistantly uses more cycles to run, so use 
-// *          AnPiFade when just setting a static color across pixels.
-// *      - Artifacts have been observed when multiple things are running at once.
-// *          They are controlable by manipulating the event timings.  Problem is 
-// *          still unknown.  That's the half of it.
-// *      - Removed large chunks of code. 
-// *      - Because of the removals, some of the code could stand some optimization
-// *          rewriting.
-// *      - This version is an "as was" version.  More changes will be made after 
-// *          the soon installation and testing of a 3rd and 4th stip.
-// *        
-// *
-// *  V 0.31 _200517
-// *      - Preping for 2 LED strip operation and testing.
-// *      - A few layout changes.
-// *      - a few variable name changes.
-// *      - May have fixed the Fade bug.
-// *      - Removed the Expired varible.  I didnt like it because it was confusing.
-// *      - Fighting for memory.  System seems stable at 91% ram. Unstable at 94%.
-// *          and will not run at 97%.
-// *          Clean house some but there remains much more to do.  Current memory
-// *          improvements were a result of changing the timed event array count to
-// *          13 from 15.  The largest Animation is 9 events so testing on lowering
-// *          this value may help.   Alternativly, I could get rid of the Start Array. 
-// *      - Copied and customized front and back door animations.
-// *      - Modifie Power On animation.
-// *      - Debugged a large amount of code so that 2 animatiion strips will run at
-// *          the same time.
-// *      - Only thing I can thing of doing at this time is install it and see if 
-// *          it works.
-// *
-// *  V 0.30 _200513
-// *      - Adding communication code to recieve commands from a control module.
-// *          It doesn't work fully, but it is part of the next phase of the process so
-// *          I did start testing it.  Leaving it in for now.
-// *      - Spent what felt like the better part of a year trying to rewrite the
-// *          fade animations to not use the StartArray.  First by care and finess,
-// *          second by maticulus calculations, and third by hammer, duck tape, and
-// *          zip ties.  Nothing worked.  Threw the whole thing in the trash can
-// *          and picked out the things that actully worked.  Which are:
-// *      - New compile time definitions for BOOTEST, BOORESTIME, and BOOTESTRESTTIME.
-// *      - Fast, quickly expiring animations should now finish before purging
-// *          themselves.  Although I picked it out of the trash, and it worked before.
-// *          I haven't tested it on this build because it isn't critical with the current
-// *          animations.  It's a part of the flash animation, which is useless anyway
-// *          untill I get a control moudule coded, tested, and built.
-// *      - The one major bug that still exist is within the fade animation.
-// *          If a fade animation is called ontop of another active one, weird things
-// *          happen, glitchy type stuff.
-// *          This error also becomes appearant when calling to animations back to back.
-// *          Even though one should be expired, the problem apears.  I found out I
-// *          can get around this by padding them, but I shouldn't have to.
-// *          Also, a strange backwash is apearant if the LEDs were dithered to another
-// *          color.
-// *      - The program takes up way too much ram.  I need to clean house.  Waiting on
-// *          it for now untill I install my second set of light strips tomorrow or the
-// *          day after.  I would really like to get 3 LED light strips, or about 200 LEDs
-// *          on a single Arduino NANO.  If I could do away with the Start LED array...
-// *          if only.
-// *      - Brought the frame rate back to 1000 - 1 FPS.  I don't know what the frame
-// *          rate is, really.  I think I had to tone it down in the prev build because
-// *          I didn't know about the fade animation bug.
-// *
-// *  V 0.23 _200505
-// *      - Added a Lock LED Start parameter to the events to prevent multiple events on
-// *          the same pixel set, starting at different times, to not step on each other.
-// *      - Changed some varible sizes to save space.  LED counts are now one byte and
-// *          duration and speed is now maxing at 65535ms (2 bytes).
-// *      - For some odd reason, memory was not being saved when using a single LED
-// *          strip.
-// *      - Oh, boy.  Getting complex now.  Got it working and wishing I had some
-// *          Lavian Brandy (https://elite-dangerous.fandom.com/wiki/Lavian_Brandy)
-// *          to celebrate. A Start Color lock array was added and I dumped the old
-// *          count multiple events on same pixel routine, that would drop the first
-// *          event colision.
-// *      - Changed a few animations to reflect the upgrade.
-// *      - Still have no idea how to make Christmas lights.
-// *
-// *  V 0.22 _200427
-// *      - Events crossing over the same pixels now work.  Not perfectly but does work
-// *          when the Events start at the same time.  Will work on this more when I
-// *          feel like making more complex animations.
-// *      - Changed the intRestTime varible to 15.  Turns out, this arduino isn't as much
-// *          of a turtle as I thought it was.  Actually, not a turtle at all.  Anyway,
-// *          updating the refresh rate at 1000 times a second causes glitches as it writes
-// *          over itself in the same frame.  I changed the varible to = 16 to represent
-// *          something like 60FPS.
-// *      - Changed a bunch of other things while trying to debug a/the problem, that was
-// *          described and solved with the change above.
-// *
-// *  V 0.21 _200425
-// *      - Small change, if the door is open when the system is powered on then the door
-// *          open animation will be active.
-// *      - Removed blank lines and added blank lines.
-// *      - Manually word_wrapped some stuff.
-// *
-// *  V 0.20 _200424
-// *      - Rewrote a large portion of the code to change the way the LED animations are
-// *          calculated with respects to time.
-// *          In short, previously the values of the LEDs were calculated in chunks,
-// *          beginning to end, per event animation.  Now, I am calculating the value of
-// *          each pixel from the begging of the LED strip, down to the end of the strip.
-// *          Think of it as moving from an LCD Timex watch, to a progressive scan Sony 4k
-// *          Gaming Monitor.  Ok, so its not that extreme, but in the future, I will be
-// *          able to make more accurate calculations when multiple events overlap the
-// *          same pixel.  We aren't there yet, but we could be.
-// *
-// *  V 0.13 _200420
-// *      - Been a month now because of the pandemic. Finally recieved a more spare parts.
-// *      - Added some basic Animation Definitions to make things easyier to understand.
-// *      - Added a simple routine to calculate time delays in between event animations.
-// *      - Made some cosmetic changes to some of the animations.
-// *
-// *  V 0.12 _200326
-// *      - Fine tuned the door animations till it was visually appealing to me.
-// *      - The behavior of the first state animation changed.  I cant get it to
-// *          work like it was and the way it was prefered.  Hacked together and
-// *          ugly fix that I will just need to get rid of at a later time.
-// *
-// *  V 0.11b _200325
-// *      - Small changes made.  Preparing and installing hardware in test ship.
-// *      - Lost #2 of 3 Arduino boards because of a failure on my part to disconnect one
-// *          of the power leads while updating.  Although it was not powered, a short
-// *          occured and the board was burnt.  I loved you little Nano, but I can't
-// *          fix you.
-// *
-// *  V 0.11 _200319
-// *      - Duplicated portions of the code to handle a second light strip on pin 4
-// *          that will run concurrently with the first light strip.  Testing ended just
-// *          short of running both light strips at the same time.  That was because,
-// *          even though I had a second light strip available, I ran out of power
-// *          feeds.
-// *
-// *  V 0.10b _200318
-// *      - Got some rest.  Fixed a bunch of stuff.
-// *      - Seperated Dest Color to Dest 1 and Dest 2 to dither from start to end.
-// *      - Created Pixil Animation 3.  Same as flash but ends on Color 2.
-// *      - Seperated Event handling of to handle Pixel Animation 1 differently than
-// *          Pixel Animation 2 and 3.  Considering merging Pixel Anination 2 and 3
-// *          then getting around this seperation issue.
-// *
-// *  V 0.10 _200318
-// *    - Rewrote the code when disposing of the LightPath methodology.  This freed up
-// *        enough memory to allow 150 lights within 2k of memory.  I really dont like
-// *        This way of doing things.  It takes more overhead in a starting heap process
-// *        and its much more complex.  Maybe I'm just that I'm in a bad mood because it
-// *        looks so much messier and it took so efing long to debug, only to end up with
-// *        code that does the exact same thing, except worst.  Maybe its good.  I don't
-// *        know.  Had no choice.  Moving on.
-// *
-// *  V 0.03 _200314
-// *    - Corrected a few bugs.  Added a few capabilities.
-// *    - Added a simple switch monitor and animation routines.
-// *    - Set Up some fake triggers and events for testing.
-// *
-// *  V 0.02b _200313
-// *    - Dirty Birdy update:
-// *        The code is a  hot mess.  Nearly completely undocumented.  Crap is
-// *        everywhere.  Stuff is scattered and unorganized.  Varibles are huge
-// *        and nothing is unorganized.  The thing is ...
-// *    - It works.
-// *    - Next step: clean this bird up to and get it ready for a stew.
-// *    0.02c
-// *    - Quickly added comments and started cleaning things up.
-// *    - Tested to see if it still runs as before.  Yep.  All good.
-// *
-// *  V 0.02  _200311
-// *    - Creating main working system.
-// *
-// *  V 0.01  _200309
-// *    - Project Start.
+// *          Global variables use 1777 bytes (86%) of dynamic memory, leaving 271 bytes 
+// *          for local variables. Maximum is 2048 bytes.
 // *
 // ***************************************************************************************
 
@@ -374,33 +115,39 @@
 
 
 // Amount of LEDs per strip s0 and s1.
-#define NUM_LEDSs0    123 //71
+
+
+#define NUM_LEDSs0    123     
 #define s0As          0       // s0 A Start
 #define s0Ae          69      // s0 A End
 #define s0Bs          70      // s0 B Start
 #define s0Be          121     // s0 B End
 
-#define NUM_LEDSs1    118 //66
+
+#define NUM_LEDSs1    118 
 #define s1As          0       // s1 A Start
 #define s1Ae          65      // s1 A End
 #define s1Bs          66      // s1 B Start
 #define s1Be          117     // s1 B End
 
+
+
 /*
-// *** TEST ***
-#define NUM_LEDSs0    60 //71
+// *** TEST BLOCK FOR DOOR AND OVERHEAD LIGHTS ***
+#define NUM_LEDSs0    123     
 #define s0As          0       // s0 A Start
 #define s0Ae          29      // s0 A End
 #define s0Bs          30      // s0 B Start
-#define s0Be          59      // s0 B End
+#define s0Be          60     // s0 B End
 
-#define NUM_LEDSs1    60 //66
+
+#define NUM_LEDSs1    118 
 #define s1As          0       // s1 A Start
 #define s1Ae          29      // s1 A End
 #define s1Bs          30      // s1 B Start
-#define s1Be          59      // s1 B End
-// *** TEST *** 
+#define s1Be          60     // s1 B End
 */
+
 
 // On off buttons, door sensors, switches.
 #define SWITCH_PINs0    8       // 8 // A8 - Hardware Open Close Door Sensor 1
@@ -412,11 +159,11 @@
 
 // -------------------------------------------------------------------------------------
 // SOFTWARE MANAGEMENT
-#define NUM_STRIPS        2   // Amount of LED strips we will be controlling.
+#define NUM_CHANNELS        2   // Amount of LED strips we will be controlling.
 #define NUM_TIMED_EVENTS  15  // Untill I can remember how LL, this is being
 //  Also, total number of this will be multiplied by the
 //  amount of LED strips you have setup.  Watch your memory.
-#define NUM_SWITCHES      4
+#define NUM_SWITCHES      4   // 4
 
 #define BRIGHTNESS        96  // Using Example Code.  Max unknown
 #define FRAMES_PER_SECOND 120 // Will not be necessary, but keeping, for now, just in 
@@ -439,47 +186,94 @@
 // -------------------------------------------------------------------------------------
 // BASIC DEFINITIONS FOR EASY REFERENCE
 
+// Door Switch Reference
+#define Door_Back     0 // Back Door Switch
+#define Door_Front    1 // Front Door Switch
+#define Door_Aux      2 // Aux Door Switch 
+
+// Strip Reference
+#define Back_Door     0 // Back Door 
+#define Back_Over     1 // Back Overhead 
+#define Front_Door    2 // Front Door 
+#define Front_Over    3 // Front Overhead 
+
 // Event Animations
-#define AnEvClear     0
-#define AnEvSweep     1
-#define AnEvSchedule  2
-#define AnEvSetToEnd  3
+#define AnEvClear         0
+#define AnEvClearRunning  8
+#define AnEvSweep         1
+#define AnEvSchedule      2
+#define AnEvSetToEnd      3
 // Pixel Animations
-#define AnPiFade      4
-#define AnPiFadeDith  5
-#define AnPiPulse     6
-#define AnPiPulseTo   7
+#define AnPiFade          4
+#define AnPiFadeDith      5
+#define AnPiPulse         6
+#define AnPiPulseTo       7
 
 // Animations (Global)
 // Hardcoding this for now.
-#define AnTaAllOff              0
+#define AnTaOff              0
 #define AnTaPowerOn             1
 
-#define AnTaDoorOpenBack        2
-#define AnTaDoorOpenBack01      21
-#define AnTaDoorOpenBack02      22
+#define AnTaDoorOpen            2
 
+#define AnTaDoorOpen00          20
+#define AnTaDoorOpen01          21
+#define AnTaDoorOpen02          22
+
+/*
 #define AnTaDoorOpenFront       3
-#define AnTaDoorOpenFront01     31
+*/
+#define AnTaStripOverOff        31
+/*
 #define AnTaDoorOpenFront02     32
+*/
 
-#define AnTaDoorCloseBack       4
-#define AnTaDoorCloseBack01     41
-#define AnTaDoorCloseBack02     42
+#define AnTaDoorClose           4
+#define AnTaDoorClose00         40
+#define AnTaDoorClose01         41
 
-#define AnTaDoorCloseFront      5
+#define AnTaChannelPulseGreen   5
+
+/*
 #define AnTaDoorCloseFront01    51
 #define AnTaDoorCloseFront02    52
+*/
 
-#define AnTavdPacificaishBack   6
-#define AnTavdPacificaishFront  7
+#define AnTavdPacificaish       6
+//#define AnTavdPacificaishFront  7
 
-#define AnTavdPaAnimBackClose   8
-#define AnTavdPaAnimFrontClose  9
+#define AnTavdPaAnimClose        8
+#define AnTavdPaAnimClose00      80
+//#define AnTavdPaAnimFrontClose  9
 
 // ***************************************************************************************
 // STRUCTURES
 // ***************************************************************************************
+
+// LedStrip Structures 
+// -------------------------------------------------------------------------------------
+// Defines a basic LED Strip
+struct led_strip
+{
+  int Cl = 0; // Channel
+  int St = 0; // Start Led Pos
+  int Ed = 0; // End Led Pos
+  int AnimationStatus = 0;
+
+  void set(int intChannel, int intStart, int intEnd)
+  {
+    Cl = intChannel;
+    St = intStart;
+    Ed = intEnd;
+  }
+
+  int Ct()
+  {
+    int count;
+    return Ed - St + 1;
+  }
+};
+
 //  TIMED EVENT
 // -------------------------------------------------------------------------------------
 
@@ -873,7 +667,6 @@ struct timed_event
               activeeventcount++;   //  Attempt to restrict the amount of times this 
                                     //    routine is ran.
               booEventActive[event] = true;
- 
 
               // Grab Event Data that may change or be processed within this switch 
               //  statement. We will be calculating the change of the pixel color, not 
@@ -1030,19 +823,25 @@ struct timed_event
 struct hardware_monitor
 // Create a hardware switch or button varable type.
 {
+  // External
+  boolean booVALUE;
+  unsigned long tmeTOGGLEDTIME;
+  boolean ISHARDWARE = false;
+
+  // Internal
   unsigned long tmeCHANGEDETECTEDTIME;
   boolean booPREVCHANGEDETECTED;
   unsigned int tmeLEEWAY;
-  boolean booVALUE;
   boolean booFIRSTRUN = true;
 
-  void set(boolean booValue, int tmeLeeWay)
+  void set(boolean booValue, int tmeLeeWay, boolean isHardware)
   // Prepare the switch.
   {
     tmeCHANGEDETECTEDTIME = millis();
     tmeLEEWAY = tmeLeeWay;
     booVALUE = booValue;
     booPREVCHANGEDETECTED = false;
+    ISHARDWARE = isHardware;
   }
 
   boolean changed(boolean booValue)
@@ -1092,6 +891,7 @@ struct hardware_monitor
       booVALUE = booValue;
       booPREVCHANGEDETECTED = false;
       tmeCHANGEDETECTEDTIME = tmeTme;
+      tmeTOGGLEDTIME = tmeTme;
       return true;
     }
   }
@@ -1145,19 +945,28 @@ int intAnTmDly(int intTm, int intDur, int intCt, int intSp)
 
 /*
 // -------------------------------------------------------------------------------------
-void vdTESTFLASHAnimation(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
+void vdTESTFLASHAnimation(led_strip lsStrips[], led_strip lsSt, timed_event teEvent[], unsigned long tmeCurrentTime)
 {
   int intTm;
   int intDur;
   int intCt;
   int intSp;
+
+  intDur = 500; intSp = 50; intCt = lsSt.Ct();
+  teEvent[lsSt.Cl].set(tmeCurrentTime, 50, intDur, intSp, AnEvSweep, AnPiPulseTo, CRGB(20, 20, 20), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, true, true);
 }
 */
 
 // -------------------------------------------------------------------------------------
-void vdPowerOnAnimation(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
+void vdPowerOnAnimation(led_strip lsStrips[], led_strip lsSt, timed_event teEvent[], unsigned long tmeCurrentTime)
 // Just to show the lights work when the program starts.
 {
+  // Update Animation Status 
+  lsStrips[Back_Door].AnimationStatus = AnTaPowerOn;
+  lsStrips[Back_Over].AnimationStatus = AnTaPowerOn;
+  lsStrips[Front_Door].AnimationStatus = AnTaPowerOn;
+  lsStrips[Front_Over].AnimationStatus = AnTaPowerOn;
+
   int intTm;
   int intDur;
   int intCt;
@@ -1165,34 +974,36 @@ void vdPowerOnAnimation(timed_event teEvent[], int intPos, unsigned long tmeCurr
 
   intDur = 250; intSp = 5; intCt = 118;
   // Pulse Front Door
-  teEvent[1].set(tmeCurrentTime, 50, intDur, intSp, AnEvSweep, AnPiPulseTo, CRGB(125, 125, 125), CRGB(0, 0, 25), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, 0, false, true);
+  teEvent[1].set(tmeCurrentTime, 50, intDur, intSp, AnEvSweep, AnPiPulseTo, CRGB(125, 125, 125), CRGB(0, 0, 25), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[Front_Over].Ed, lsStrips[Front_Door].St, false, true);
   // Pulse Back Door
-  teEvent[0].set(tmeCurrentTime, 640, intDur, intSp, AnEvSweep, AnPiPulseTo, CRGB(125, 125, 125), CRGB(0, 0, 25), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Be, 0, false, true);
+  teEvent[0].set(tmeCurrentTime, 640, intDur, intSp, AnEvSweep, AnPiPulseTo, CRGB(125, 125, 125), CRGB(0, 0, 25), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[Back_Over].Ed, lsStrips[Back_Door].St, false, true);
 
 
   intDur = 2000; intSp = 15; intCt = 71;
   // Clear Front Door
-  teEvent[1].set(tmeCurrentTime, 890, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 0, 25), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, 0, false, true);
+  teEvent[1].set(tmeCurrentTime, 890, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 0, 25), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[Front_Over].Ed, lsStrips[Front_Door].St, false, true);
   // Clear Back Door
-  teEvent[0].set(tmeCurrentTime, 1480, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 0, 25), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Be, 0, false, true);
+  teEvent[0].set(tmeCurrentTime, 1480, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 0, 25), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[Back_Over].Ed, lsStrips[Back_Door].St, false, true);
 }
 
+
 // -------------------------------------------------------------------------------------
-void vdSimplePulse(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
+void vdSimplePulse(led_strip lsStrips[], led_strip lsSt, timed_event teEvent[], unsigned long tmeCurrentTime)
 // Just to show the lights work when the program starts.        
 // vdSimplePulse(teEvent, 1, tmeCurrentTime);
 {
   int intTm;
   int intDur;
-  int intCt;
   int intSp;
 
-  intDur = 250; intSp = 5; intCt = 118;
+  intDur = 250; intSp = 5;
   // Pulse Front Door
-  teEvent[1].set(tmeCurrentTime, 50, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(125, 125, 125), CRGB(0, 0, 25), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, 0, false, true);
+  teEvent[1].set(tmeCurrentTime, 50, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(125, 125, 125), CRGB(0, 0, 25), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[Front_Over].Ed, lsStrips[Front_Door].St, false, true);
   // Pulse Back Door
-  teEvent[0].set(tmeCurrentTime, 50, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(125, 125, 125), CRGB(0, 0, 25), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Be, 0, false, true);
+  teEvent[0].set(tmeCurrentTime, 50, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(125, 125, 125), CRGB(0, 0, 25), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[Back_Over].Ed, lsStrips[Back_Door].St, false, true);
 }
+
+
 /*
 // -------------------------------------------------------------------------------------
 void vdAlertAnimation(timed_event teEvent, unsigned long tmeCurrentTime)
@@ -1204,294 +1015,307 @@ void vdAlertAnimation(timed_event teEvent, unsigned long tmeCurrentTime)
 }
 */
 
+void vdStripOverOff(led_strip lsStrips[], led_strip lsSt, timed_event teEvent[], unsigned long tmeCurrentTime)
+// Turn (force) Lights Off ona Strip
+{
+  int intTm;
+  int intDurW;
+  int intDurG;
+  int intSp;
+
+  int intDelay;
+
+    // Swap sweep start and end, depending on front or back.
+  int start;
+  int end;
+  if (lsSt.Cl == 0)
+  {
+    start = lsSt.St;
+    end = lsStrips[lsSt.Cl +1 ].Ed;
+  }
+  else
+  {
+    start = lsSt.Ed;
+    end = lsStrips[lsSt.Cl +1 ].St;
+  }
+
+  // Clear and Pulse colors background to green then ending in blueish, starting with the center.
+  intTm = 50; intDurW = 200; intDurG = 1500; intSp = 5;
+  intDelay = intAnTmDly(intTm, 0, lsSt.Ct(), intSp);
+
+  // Door White
+  //teEvent[lsSt.Cl].set(tmeCurrentTime, intTm + 50, intDurW, intSp, AnEvSweep, AnPiPulse, CRGB(64, 128, 64), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[lsSt.Cl].St, lsStrips[lsSt.Cl].Ed, false, true);
+  // Overhead White
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm + intDelay + 50, intDurW, intSp, AnEvSweep, AnPiPulse, CRGB(64, 128, 64), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0),  start, end, false, true);
+ 
+  // Door Green Fadeout
+  //teEvent[lsSt.Cl].set(tmeCurrentTime, intTm, intDurG, intSp, AnEvSweep, AnPiPulse, CRGB(0, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[lsSt.Cl].St, lsStrips[lsSt.Cl].Ed, false, true);
+  // Overhead Green Fadeout
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm + intDelay, intDurG, intSp, AnEvSweep, AnPiPulse, CRGB(0, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0),  start, end, false, true);
+}
+
+
+void vdChannelLightPulseGreen(led_strip lsStrips[], led_strip lsSt, timed_event teEvent[], unsigned long tmeCurrentTime)
+// Turn (force) Green Pulse on Full Channel. Strip Length Aware. 
+{
+  int intTm;
+  int intDurW;
+  int intDurG;
+  int intCt;
+  int intSp;
+
+  int intDelay;
+
+    // Swap sweep start and end, depending on front or back.
+  int start;
+  int end;
+  if (lsSt.Cl == 0)
+  {
+    start = lsSt.St;
+    end = lsStrips[lsSt.Cl +1 ].Ed;
+  }
+  else
+  {
+    start = lsSt.Ed;
+    end = lsStrips[lsSt.Cl +1 ].St;
+  }
+
+  // Clear and Pulse colors background to green then ending in blueish, starting with the center.
+  intTm = 50; intDurW = 200; intDurG = 1500; intSp = 5; intCt = 36;
+  intDelay = intAnTmDly(intTm, 0, lsSt.Ct(), intSp);
+
+  // Door White
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm + 50, intDurW, intSp, AnEvSweep, AnPiPulse, CRGB(64, 128, 64), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[lsSt.Cl].St, lsStrips[lsSt.Cl].Ed, false, true);
+  // Overhead White
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm + intDelay + 50, intDurW, intSp, AnEvSweep, AnPiPulse, CRGB(64, 128, 64), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), start, end, false, true);
+ 
+  // Door Green Fadeout
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm, intDurG, intSp, AnEvSweep, AnPiPulse, CRGB(0, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[lsSt.Cl].St, lsStrips[lsSt.Cl].Ed, false, true);
+  // Overhead Green Fadeout
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm + intDelay, intDurG, intSp, AnEvSweep, AnPiPulse, CRGB(0, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), start, end, false, true);
+}
+
 // -------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------
 
-void vdDoorOpenAnimationBack(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
-// Door Open Back Stage 0
+void vdDoorOpenAnimation(led_strip lsStrips[], led_strip lsSt, timed_event teEvent[], unsigned long tmeCurrentTime)
+// Door Open 
+// Door is open, engage safety lights and start door overhead lights.
+{
+  // Update Animation Status 
+  lsStrips[lsSt.Cl].AnimationStatus = AnTaDoorOpen;
+  lsStrips[lsSt.Cl +1 ].AnimationStatus = AnTaDoorOpen;
 
-// Door is open, engage safety lights.
+  //Door Animation
+  // Clear Events On Door
+  vdClearAllTimedEvent(teEvent, lsSt.Cl, lsStrips[lsSt.Cl].St, lsStrips[lsSt.Cl].Ed);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, 10, 0, 0, AnEvSchedule, AnTaDoorOpen00, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[lsSt.Cl].St, lsStrips[lsSt.Cl].Ed, false, true);
+
+  // Clear Events for the Overhead Animation
+  vdClearAllTimedEvent(teEvent, lsSt.Cl, lsStrips[lsSt.Cl + 1 ].St, lsStrips[lsSt.Cl +1 ].Ed);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, 10, 0, 0, AnEvSchedule, AnTavdPacificaish, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[lsSt.Cl +1 ].St, lsStrips[lsSt.Cl +1 ].Ed, false, true);
+}
+
+void vdDoorOpenAnimation00(led_strip lsStrips[], led_strip lsSt, timed_event teEvent[], unsigned long tmeCurrentTime)
+// Door Open Stage 0
+// Prepare red backgrounds and puddle lights for the caution lights, and start shimmer effect.
 {
   int intTm;
   int intDur;
   int intCt;
   int intSp;
   // Door Open Animation
-  intTm = 100; intDur = 500; intSp = 10; intCt = 60;
-
-  teEvent[intPos].set(tmeCurrentTime, intTm , 0, 0, AnEvSchedule, AnTavdPacificaishBack, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
+  intTm = 100; intDur = 500; intSp = 10; intCt = lsSt.Ct(); // was 60
 
   // Clear set background to door open colors.
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(255, 255, 255), CRGB(0, 0, 0), CRGB(255, 64, 64), s0As, s0As + 4, false, false);
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(255, 64, 64), CRGB(0, 0, 0), CRGB(25, 0, 0), 5, 10, false, false);
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(25, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 11, s0Ae - 6, false, false);
-  teEvent[intPos].set(tmeCurrentTime, intTm + 500, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(25, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Ae - 5, s0Ae, false, false);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(255, 255, 255), CRGB(0, 0, 0), CRGB(255, 64, 64), lsSt.St, lsSt.St + 4, false, false);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(255, 64, 64), CRGB(0, 0, 0), CRGB(25, 0, 0), lsSt.St + 5, lsSt.St + 10, false, false);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(25, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St + 11, lsSt.Ed - 6, false, false);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm + 500, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(25, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.Ed - 5, lsSt.Ed, false, false);
 
   // Shimmer
-  teEvent[intPos].set(tmeCurrentTime, intTm, 10000, 500, AnEvSweep, AnPiPulse, CRGB(15, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, false);
-  teEvent[intPos].set(tmeCurrentTime, intTm, 6000, 280, AnEvSweep, AnPiPulse, CRGB(15, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, false);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm, 10000, 500, AnEvSweep, AnPiPulse, CRGB(15, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, true, false);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm, 6000, 280, AnEvSweep, AnPiPulse, CRGB(15, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, true, false);
 
   intTm = intAnTmDly(intTm, intDur, intCt, intSp);
-  teEvent[intPos].set(tmeCurrentTime, intTm, 0, 0, AnEvSchedule, AnTaDoorOpenBack01, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm, 0, 0, AnEvSchedule, AnTaDoorOpen01, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, false, true);
 }
 
-void vdDoorOpenAnimationBack01(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
-// Door Open Back Stage 1
+void vdDoorOpenAnimation01(led_strip lsStrips[], led_strip lsSt, timed_event teEvent[], unsigned long tmeCurrentTime)
+// Door Open Stage 1
 {
   int intTm = 50;
   int intDur;
   int intCt;
   int intSp;
 
-  //teEvent[intPos].set(tmeCurrentTime, intTm , 0, 0, AnEvSchedule, AnTavdPacificaishBack, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
-  //  BUG:  Previous line not running if intTm is set to 0 or less.  Seems related to the previous calling AnEvSchedule event and this event running at the 
-  //          same exact time.  if intTm is set to 0, all events in vdDoorOpenAnimationFront01 do not run. Not, just the AnTavdPacificaishFront.
-
-  // Flash
-  intDur = 100; intSp = 2; intCt = 71;
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(80, 80, 0), CRGB(80, 80, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, false, true);
+  // Caution Door Open Flash
+  intDur = 100; intSp = 2; intCt = lsSt.Ct();
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(80, 80, 0), CRGB(80, 80, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, false, true);
   intTm = intAnTmDly(intTm, intDur, intCt, intSp);
-  intDur = 600; intSp = 12; intCt = 71;
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(80, 80, 0), CRGB(80, 80, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, false, true);
+  intDur = 600; intSp = 12; intCt = lsSt.Ct();
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(80, 80, 0), CRGB(80, 80, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, false, true);
   intTm = intAnTmDly(intTm, intDur, intCt, intSp);
-  intDur = 1500; intSp = 30; intCt = 71;
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(128, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, false, true);
+  intDur = 1500; intSp = 30; intCt = lsSt.Ct();
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(128, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, false, true);
 
   intTm = intAnTmDly(intTm, intDur, intCt, intSp);
-  teEvent[intPos].set(tmeCurrentTime, intTm, 0, 0, AnEvSchedule, AnTaDoorOpenBack02, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm, 0, 0, AnEvSchedule, AnTaDoorOpen02, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, false, true);
 }
 
-void vdDoorOpenAnimationBack02(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
-// Door Open Back Stage 2
+void vdDoorOpenAnimation02(led_strip lsStrips[], led_strip lsSt, timed_event teEvent[], unsigned long tmeCurrentTime)
+// Door Open Stage 2
 {
   int intTm = 0;
   int intDur;
   int intCt;
   int intSp;
+  int intMid = lsSt.Ct() / 2;
 
   // Repeat Pulse
-  intDur = 1500; intSp = 125; intCt = 36;
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(255, 255, 0), CRGB(255, 255, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, 34, true, true);
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(255, 255, 0), CRGB(255, 255, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Ae, 35, true, true);
+  intDur = 1500; intSp = 125; intCt = lsSt.Ct(); // was 36
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(255, 255, 0), CRGB(255, 255, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.St + intMid, true, true);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(255, 255, 0), CRGB(255, 255, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.Ed, lsSt.Ed - intMid, true, true);
 }
 
-// -------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------
-
-void vdDoorOpenAnimationFront(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
-// Door Open Front Stage 0
-
-// Door is open, engage safety lights.
-{
-int intTm;
-  int intDur;
-  int intCt;
-  int intSp;
-  // Door Open Animation
-  intTm = 100; intDur = 500; intSp = 10; intCt = 60;
-
-  teEvent[intPos].set(tmeCurrentTime, intTm , 0, 0, AnEvSchedule, AnTavdPacificaishFront, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
-
-  // Clear set background to door open colors.
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(255, 255, 255), CRGB(0, 0, 0), CRGB(255, 64, 64), s1As, s1As + 4, false, false);
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(255, 64, 64), CRGB(0, 0, 0), CRGB(25, 0, 0), 5, 10, false, false);
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(25, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 11, s1Ae - 6, false, false);
-  teEvent[intPos].set(tmeCurrentTime, intTm + 500, intDur, intSp, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(25, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Ae - 5, s1Ae, false, false);
-
-  // Shimmer
-  teEvent[intPos].set(tmeCurrentTime, intTm, 10000, 500, AnEvSweep, AnPiPulse, CRGB(15, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, true, false);
-  teEvent[intPos].set(tmeCurrentTime, intTm, 6000, 280, AnEvSweep, AnPiPulse, CRGB(15, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, true, false);
-
-  intTm = intAnTmDly(intTm, intDur, intCt, intSp);
-  teEvent[intPos].set(tmeCurrentTime, intTm, 0, 0, AnEvSchedule, AnTaDoorOpenFront01, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
-}
-
-void vdDoorOpenAnimationFront01(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
-// Door Open Front Stage 1
-{
-  int intTm = 50;
-  int intDur;
-  int intCt;
-  int intSp;
-
-  //teEvent[intPos].set(tmeCurrentTime, intTm , 0, 0, AnEvSchedule, AnTavdPacificaishBack, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
-  //  BUG:  Previous line not running if intTm is set to 0 or less.  Seems related to the previous calling AnEvSchedule event and this event running at the 
-  //          same exact time.  if intTm is set to 0, all events in vdDoorOpenAnimationFront01 do not run. Not, just the AnTavdPacificaishFront.
-
-  // Flash
-  intDur = 100; intSp = 2; intCt = 71;
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(80, 80, 0), CRGB(80, 80, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, false, true);
-  intTm = intAnTmDly(intTm, intDur, intCt, intSp);
-  intDur = 600; intSp = 12; intCt = 71;
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(80, 80, 0), CRGB(80, 80, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, false, true);
-  intTm = intAnTmDly(intTm, intDur, intCt, intSp);
-  intDur = 1500; intSp = 30; intCt = 71;
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(128, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, false, true);
-
-  intTm = intAnTmDly(intTm, intDur, intCt, intSp);
-  teEvent[intPos].set(tmeCurrentTime, intTm, 0, 0, AnEvSchedule, AnTaDoorOpenFront02, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
-}
-
-void vdDoorOpenAnimationFront02(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
-// Door Open Front Stage 2
-{
-  int intTm = 0;
-  int intDur;
-  int intCt;
-  int intSp;
-
-  // Repeat Pulse
-  intDur = 1500; intSp = 125; intCt = 36;
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(255, 255, 0), CRGB(255, 255, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, 32, true, true);
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(255, 255, 0), CRGB(255, 255, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Ae, 33, true, true);
- }
 
 // -------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------
 
-void vdDoorCloseAnimationBack(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
-// Door closed.  Quick animation to show and turn off lights.
+void vdDoorCloseAnimation(led_strip lsStrips[], led_strip lsSt, timed_event teEvent[], unsigned long tmeCurrentTime)
+// Door Close Stage 0
+// Door is closed, disengage safety lights and stop door overhead lights.
 {
+  // Update Animation Status 
+  lsStrips[lsSt.Cl].AnimationStatus = AnTaDoorClose;
+  lsStrips[lsSt.Cl +1 ].AnimationStatus = AnTaDoorClose;
+
   int intTm;
   int intDur;
-  int intCt;
   int intSp;
 
-  // Stop the currently running Pacificaish animation.
-  teEvent[intPos].set(tmeCurrentTime, 10, 6000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
+  //  Clear Currently Running Animations First
+  //  Door
+  vdClearAllTimedEvent(teEvent, lsSt.Cl, lsStrips[lsSt.Cl].St, lsStrips[lsSt.Cl].Ed);
+  //  Overhead
+  vdClearAllTimedEvent(teEvent, lsSt.Cl, lsStrips[lsSt.Cl +1 ].St, lsStrips[lsSt.Cl  +1 ].Ed);
 
-  // Clear and Pulse colors background to green then ending in blueish, starting with the center.
-  intTm = 50; intDur = 750; intSp = 30; intCt = 36;
+  // Pulse Clear All Animations
+  teEvent[lsSt.Cl].set(tmeCurrentTime, 100, 0, 0, AnEvSchedule, AnTaChannelPulseGreen, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[lsSt.Cl].St, lsStrips[lsSt.Cl].Ed, false, true);
+  
+  //Restore the privouse Blue to fade out
+  intTm = 200; intDur = 6000; intSp = 5;
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intTm , intDur, intSp, AnEvSweep, AnPiPulse, CRGB(0, 0, 60), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[lsSt.Cl +1 ].Ed, lsStrips[lsSt.Cl +1 ].St, false, true);
 
-  teEvent[intPos].set(tmeCurrentTime, intTm, 100, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, false, true);
-  teEvent[intPos].set(tmeCurrentTime, intTm + 1500, 100, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Be, s0Bs, false, true);
- 
-  teEvent[intPos].set(tmeCurrentTime, intTm + 50, intDur, intSp, AnEvSweep, AnPiPulseTo, CRGB(0, 255, 0), CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, false, true);
-  teEvent[intPos].set(tmeCurrentTime, intTm + 50 + 1500, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(0, 255, 0), CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Be, s0Bs, false, true);
- 
-  // Fade remaining colors out.
-  intTm = intAnTmDly(intTm, intDur, intCt, intSp) + 300;
-  intDur = 5000; intSp = 100; intCt = 36;
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, false, true);
-  //teEvent[intPos].set(tmeCurrentTime, intTm + 1500, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Be, s0Bs, false, true);
+  // Door Animation
+  //  No Need While Green Whipe Is Clearing
 
-  teEvent[intPos].set(tmeCurrentTime, intTm + 2000, 0, 0, AnEvSchedule, AnTavdPaAnimBackClose, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
+  // Overhead Animation
+  teEvent[lsSt.Cl].set(tmeCurrentTime, 1500, 0, 0, AnEvSchedule, AnTavdPaAnimClose, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[lsSt.Cl +1 ].St, lsStrips[lsSt.Cl +1 ].Ed, false, true);
 }
 
-// -------------------------------------------------------------------------------------
-void vdDoorCloseAnimationFront(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
+void vdDoorCloseAnimation00(led_strip lsStrips[], led_strip lsSt, timed_event teEvent[], unsigned long tmeCurrentTime)
 // Door closed.  Quick animation to show and turn off lights.
 {
-  int intTm;
-  int intDur;
-  int intCt;
-  int intSp;
-
-  // Stop the currently running Pacificaish animation.
-  teEvent[intPos].set(tmeCurrentTime, 10, 6000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
-
-  // Clear and Pulse colors background to green then ending in blueish, starting with the center.
-  intTm = 50; intDur = 750; intSp = 30; intCt = 36;
-
-  teEvent[intPos].set(tmeCurrentTime, intTm, 100, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, false, true);
-  teEvent[intPos].set(tmeCurrentTime, intTm + 1500, 100, intSp, AnEvSweep, AnPiPulse, CRGB(128, 128, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, true);
- 
-  teEvent[intPos].set(tmeCurrentTime, intTm + 50, intDur, intSp, AnEvSweep, AnPiPulseTo, CRGB(0, 255, 0), CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, false, true);
-  teEvent[intPos].set(tmeCurrentTime, intTm + 50 + 1500, intDur, intSp, AnEvSweep, AnPiPulse, CRGB(0, 255, 0), CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, true);
- 
   // Fade remaining colors out.
+
+  /*  // Not Necesary because clearing door with Green Whipe
   intTm = intAnTmDly(intTm, intDur, intCt, intSp) + 300;
   intDur = 5000; intSp = 100; intCt = 36;
-  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1As, s1Ae, false, true);
-  //teEvent[intPos].set(tmeCurrentTime, intTm + 1500, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, true);
-
-  teEvent[intPos].set(tmeCurrentTime, intTm + 2000, 0, 0, AnEvSchedule, AnTavdPaAnimFrontClose, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, true);
+  teEvent[intPos].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiFade, CRGB(0, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, false, true);
+  */
 }
 
 // -------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------
 
-void vdPacificaishAnimationBack(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
+void vdPacificaishAnimation(led_strip lsStrips[], led_strip lsSt, timed_event teEvent[], unsigned long tmeCurrentTime)
+// Blue Waves
+{
+  // Swap sweep start and end, depending on front or back.
+  int start;
+  int end;
+  if (lsSt.Cl == 0)
+  {
+    start = lsSt.St;
+    end = lsSt.Ed;
+  }
+  else
+  {
+    start = lsSt.Ed;
+    end = lsSt.St;
+  }
+  
+  // Set the background color.
+  teEvent[lsSt.Cl].set(tmeCurrentTime, 1000, 500, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 0, 60), CRGB(0, 0, 0), CRGB(0, 0, 0), start, end, false, false);
+
+  // The waves.
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3500), intRandomHD(250), AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, true, true);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(1500), intRandomHD(150), AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, true, true);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3600), intRandomHD(270), AnEvSweep, AnPiPulse, CRGB(20, 200, 180), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, true, true);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3200), intRandomHD(200), AnEvSweep, AnPiPulse, CRGB(60, 200, 140), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, true, true);
+}
+
+// -------------------------------------------------------------------------------------
+
+void vdPacificaishAnimationClose(led_strip lsStrips[], led_strip lsSt, timed_event teEvent[], unsigned long tmeCurrentTime)
+{
+  // Stop the currently running Pacificaish animation.
+  // Schedule clear animation events ahead of time in case animations don't get completed.
+  teEvent[lsSt.Cl].set(tmeCurrentTime, AUXDRLINGERBCK + 2000, 0, 0, AnEvClearRunning, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, false, false);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, AUXDRLINGERBCK + 2100, 3000, 30, AnEvSweep, AnPiFade, CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, false, false);
+
+  teEvent[lsSt.Cl].set(tmeCurrentTime, 50, 0, 0, AnEvSchedule, AnTavdPaAnimClose00, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[lsSt.Cl].St, lsStrips[lsSt.Cl].Ed, false, true);
+}
+
+void vdPacificaishAnimationClose00(led_strip lsStrips[], led_strip lsSt, timed_event teEvent[], unsigned long tmeCurrentTime)
+// Amber Waves
+{
+  // Swap sweep start and end, depending on front or back.
+  int start;
+  int end;
+  if (lsSt.Cl == 0)
+  {
+    start = lsSt.St;
+    end = lsSt.Ed;
+  }
+  else
+  {
+    start = lsSt.Ed;
+    end = lsSt.St;
+  }
+  // Set the background color to Amber.
+  teEvent[lsSt.Cl].set(tmeCurrentTime, 50 + 2000, 3000, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), start, end, false, false);
+
+  // Amber waves.
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intRandomHD(2000) + 2000, intRandomHD(3500), intRandomHD(250), AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, true, true);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intRandomHD(2000) + 2000, intRandomHD(1500), intRandomHD(150), AnEvSweep, AnPiPulse, CRGB(16, 20, 0), CRGB(16, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, true, true);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intRandomHD(2000) + 2000, intRandomHD(3600), intRandomHD(270), AnEvSweep, AnPiPulse, CRGB(15, 6, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, true, true);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intRandomHD(2000) + 2000, intRandomHD(3200), intRandomHD(200), AnEvSweep, AnPiPulse, CRGB(25, 2, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsSt.St, lsSt.Ed, true, true);
+}
+
+
+// -------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------
+
+/*
+void vdPacificaishAnimationOPENTest(led_strip lsStrips[], led_strip lsSt, timed_event teEvent[], unsigned long tmeCurrentTime)
 // This animation was my personal chalenge to see if I could make a similar animation that was
 // provided in the demos and examples, as PacificaAnimation, of the FastLed library.
 {
   // Set the background color.
-  teEvent[intPos].set(tmeCurrentTime, 1000, 500, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 0, 60), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, false);
-
-  // The waves.
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3500), intRandomHD(250), AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(1500), intRandomHD(150), AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3600), intRandomHD(270), AnEvSweep, AnPiPulse, CRGB(20, 200, 180), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3200), intRandomHD(200), AnEvSweep, AnPiPulse, CRGB(60, 200, 140), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-}
-// -------------------------------------------------------------------------------------
-void vdPacificaishAnimationFront(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
-// This animation was my personal chalenge to see if I could make a similar animation that was
-// provided in the demos and examples, as PacificaAnimation, of the FastLed library.
-{
-  // Set the background color.
-  teEvent[intPos].set(tmeCurrentTime, 1000, 500, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 0, 60), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Be, s1Bs, false, false);
-
-  // The waves.
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3500), intRandomHD(250), AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(1500), intRandomHD(150), AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3600), intRandomHD(270), AnEvSweep, AnPiPulse, CRGB(20, 200, 180), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3200), intRandomHD(200), AnEvSweep, AnPiPulse, CRGB(60, 200, 140), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-}
-
-// -------------------------------------------------------------------------------------
-
-void vdPacificaishAnimationBackClose(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
-// This animation was my personal chalenge to see if I could make a similar animation that was
-// provided in the demos and examples, as PacificaAnimation, of the FastLed library.
-{
-  teEvent[intPos].set(tmeCurrentTime, AUXDRLINGERBCK, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
-
-  // Set the background color.
-  teEvent[intPos].set(tmeCurrentTime, 50, 3000, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, false);
-
-  // The waves.
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3500), intRandomHD(250), AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(1500), intRandomHD(150), AnEvSweep, AnPiPulse, CRGB(16, 20, 0), CRGB(16, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3600), intRandomHD(270), AnEvSweep, AnPiPulse, CRGB(15, 6, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3200), intRandomHD(200), AnEvSweep, AnPiPulse, CRGB(25, 2, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, true, true);
-}
-
-// -------------------------------------------------------------------------------------
-void vdPacificaishAnimationFrontClose(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
-// This animation was my personal chalenge to see if I could make a similar animation that was
-// provided in the demos and examples, as PacificaAnimation, of the FastLed library.
-{
-  teEvent[intPos].set(tmeCurrentTime, AUXDRLINGERFRT, 1000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
-
-  // Set the background color.
-  teEvent[intPos].set(tmeCurrentTime, 50, 3000, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, false);
-
-  // The waves.
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3500), intRandomHD(250), AnEvSweep, AnPiPulse, CRGB(20, 4, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(1500), intRandomHD(150), AnEvSweep, AnPiPulse, CRGB(16, 20, 0), CRGB(16, 20, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3600), intRandomHD(270), AnEvSweep, AnPiPulse, CRGB(15, 6, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3200), intRandomHD(200), AnEvSweep, AnPiPulse, CRGB(25, 2, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, true, true);
-}
-
-// -------------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------------
-
-void vdPacificaishAnimationOPENTest(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
-// This animation was my personal chalenge to see if I could make a similar animation that was
-// provided in the demos and examples, as PacificaAnimation, of the FastLed library.
-{
-  // Set the background color.
-  teEvent[intPos].set(tmeCurrentTime, 1000, 500, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 0, 60), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Ae, s0As, false, false);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, 1000, 500, 30, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 0, 60), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Ae, s0As, false, false);
 
   // The waves.
 
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3500), intRandomHD(250), AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(1500), intRandomHD(150), AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3600), intRandomHD(270), AnEvSweep, AnPiPulse, CRGB(20, 200, 180), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
-  teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3200), intRandomHD(200), AnEvSweep, AnPiPulse, CRGB(60, 200, 140), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3500), intRandomHD(250), AnEvSweep, AnPiPulse, CRGB(40, 200, 160), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(1500), intRandomHD(150), AnEvSweep, AnPiPulse, CRGB(160, 200, 40), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3600), intRandomHD(270), AnEvSweep, AnPiPulse, CRGB(20, 200, 180), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
+  teEvent[lsSt.Cl].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3200), intRandomHD(200), AnEvSweep, AnPiPulse, CRGB(60, 200, 140), CRGB(40, 200, 160), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
 }
+*/
 
+/*
 void vdPacificaishAnimationCLOSETest(timed_event teEvent[], int intPos, unsigned long tmeCurrentTime)
 // This animation was my personal chalenge to see if I could make a similar animation that was
 // provided in the demos and examples, as PacificaAnimation, of the FastLed library.
@@ -1506,14 +1330,15 @@ void vdPacificaishAnimationCLOSETest(timed_event teEvent[], int intPos, unsigned
   teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3600), intRandomHD(270), AnEvSweep, AnPiPulse, CRGB(15, 6, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Ae, true, true);
   teEvent[intPos].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(3200), intRandomHD(200), AnEvSweep, AnPiPulse, CRGB(25, 2, 0), CRGB(20, 4, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0As, s0Be, true, true);
 }
+*/
 
 // -------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------
-void teGLOBAL(timed_event teEvent[], unsigned long tmeCurrentTime)
+void teSystem(led_strip lsStripList[], timed_event teEvent[], unsigned long tmeCurrentTime)
 // Example:
-//  teEvent[0].set(tmeCurrentMillis, X, 0, 0, AnEvSchedule, AnTaDoorCloseBack, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), 0, 0, false, false);
+//  teEvent[0].set(tmeCurrentMillis, X, 0, 0, AnEvSchedule, AnTaDoorCloseBack, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), X, X, false, false);
 //    or      ( X is the values that can be set )
 //  teEvent[0].set(tmeCurrentMillis, X, X, 0, AnEvSchedule, AnEvSetToEnd, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(X, X, X), CRGB(X, X, X), 0, 0, false, false);
 //                  if booRepeat set to true then pulse animations will continue till end of cycle.
@@ -1522,20 +1347,44 @@ void teGLOBAL(timed_event teEvent[], unsigned long tmeCurrentTime)
 
 // Guide: (tmeCurrentTime, tmeStartInTime, intDuration, intSpeed, bytAnimation, bytLEDAnimation, crgbStart1, crgbDest1, crgbStart2, crgbDest2, intStartPos, intEndPos, booRepeat, booClearOnEnd)
 {
-  for (int strip = 0; strip < NUM_STRIPS; strip++)
+  for (int strip = 0; strip < NUM_CHANNELS; strip++)
   {
     for (int event = 0; event < NUM_TIMED_EVENTS; event++)
     {
-      if ((teEvent[strip].teDATA[event].booCOMPLETE == false) && (tmeCurrentTime >= teEvent[strip].teDATA[event].tmeSTARTTIME))
+      if (tmeCurrentTime >= teEvent[strip].teDATA[event].tmeSTARTTIME && teEvent[strip].teDATA[event].booCOMPLETE == false)
       {
-        // Process Timed Global Events (keeping the LED type event scheduler format for 
+        // Process Timed System Events (keeping the LED type event scheduler format for 
         //  now)
         switch (teEvent[strip].teDATA[event].bytANIMATION)
         {
-          case AnEvClear:
+          case AnEvClear:   // Clear all events, whether running or not, if event is within Start and End Position.
           {
             teEvent[strip].teDATA[event].booCOMPLETE = true;
             teEvent[strip].ClearAll(teEvent[strip].teDATA[event].intSTARTPOS,teEvent[strip].teDATA[event].intENDPOS);
+            break;
+          }
+          
+          case AnEvClearRunning:  // Clear all active events if event is within Start and End Position.
+          {                       // Possible problem if InTime is set to 0.
+            teEvent[strip].teDATA[event].booCOMPLETE = true;
+
+            for (int eventscan = 0; eventscan < NUM_TIMED_EVENTS; eventscan++)
+            {
+              if(tmeCurrentTime >= teEvent[strip].teDATA[eventscan].tmeSTARTTIME)
+              {
+                if (  ((teEvent[strip].teDATA[eventscan].intSTARTPOS >= teEvent[strip].teDATA[event].intSTARTPOS)  
+                      && (teEvent[strip].teDATA[eventscan].intSTARTPOS <= teEvent[strip].teDATA[event].intENDPOS))
+                            ||
+                      ((teEvent[strip].teDATA[eventscan].intENDPOS >= teEvent[strip].teDATA[event].intSTARTPOS)  
+                      && (teEvent[strip].teDATA[eventscan].intENDPOS <= teEvent[strip].teDATA[event].intENDPOS))  )
+                {
+                  if (event != eventscan)
+                  {
+                    teEvent[strip].teDATA[eventscan].booCOMPLETE = true;
+                  }
+                }
+              }
+            } 
             break;
           }
 
@@ -1550,94 +1399,92 @@ void teGLOBAL(timed_event teEvent[], unsigned long tmeCurrentTime)
             {
               case AnTaPowerOn:
               {
-                vdPowerOnAnimation(teEvent, 9, tmeCurrentTime);
+                vdPowerOnAnimation(lsStripList, lsStripList[0], teEvent, tmeCurrentTime);
                 break;
               }
 
-              // Open Back Door
-              case AnTaDoorOpenBack:
+              // Open Door
+              case AnTaDoorOpen:
               {
-                vdDoorOpenAnimationBack(teEvent, strip, tmeCurrentTime);
-                break;
-              }
-              case AnTaDoorOpenBack01:
-              {
-                vdDoorOpenAnimationBack01(teEvent, strip, tmeCurrentTime);
-                break;
-              }
-              case AnTaDoorOpenBack02:
-              {
-                vdDoorOpenAnimationBack02(teEvent, strip, tmeCurrentTime);
-                break;
-              }
+                // Temp Hard Code Until Consolidated Animations. Delayed for now. More work than its worth.
+                //led_strip Dr;
+                //Dr.set(strip, teEvent[strip].teDATA[event].intSTARTPOS, teEvent[strip].teDATA[event].intENDPOS);
 
-              // Open Front Door
-              case AnTaDoorOpenFront:
-              {
-                vdDoorOpenAnimationFront(teEvent, strip, tmeCurrentTime);
+                vdDoorOpenAnimation(lsStripList, lsStripList[strip *2], teEvent, tmeCurrentTime);
                 break;
               }
-              case AnTaDoorOpenFront01:
+              case AnTaDoorOpen00:
               {
-                vdDoorOpenAnimationFront01(teEvent, strip, tmeCurrentTime);
+                vdDoorOpenAnimation00(lsStripList, lsStripList[strip *2], teEvent, tmeCurrentTime);
                 break;
               }
-              case AnTaDoorOpenFront02:
+              case AnTaDoorOpen01:
               {
-                vdDoorOpenAnimationFront02(teEvent, strip, tmeCurrentTime);
+                vdDoorOpenAnimation01(lsStripList, lsStripList[strip *2], teEvent, tmeCurrentTime);
+                break;
+              }
+              case AnTaDoorOpen02:
+              {
+                vdDoorOpenAnimation02(lsStripList, lsStripList[strip *2], teEvent, tmeCurrentTime);
                 break;
               }
 
               // Close Back Door
-              case AnTaDoorCloseBack:
+              case AnTaDoorClose:
               {
-                vdDoorCloseAnimationBack(teEvent, strip, tmeCurrentTime);
+                vdDoorCloseAnimation(lsStripList, lsStripList[strip *2], teEvent, tmeCurrentTime);
                 break;
               }
-              
-              // Close Front Door
-              case AnTaDoorCloseFront:
+              case AnTaDoorClose00:
               {
-                vdDoorCloseAnimationFront(teEvent, strip, tmeCurrentTime);
-                break;
-              }
-
-              case AnTavdPacificaishBack:
-              {
-                vdPacificaishAnimationBack(teEvent, strip, tmeCurrentTime);
-                break;
-              }
-              case AnTavdPacificaishFront:
-              {
-                vdPacificaishAnimationFront(teEvent, strip, tmeCurrentTime);
+                vdDoorCloseAnimation00(lsStripList, lsStripList[strip *2], teEvent, tmeCurrentTime);
                 break;
               }
 
-              case AnTavdPaAnimBackClose:
+              case AnTaChannelPulseGreen:
               {
-                vdPacificaishAnimationBackClose(teEvent, strip, tmeCurrentTime);
+                vdChannelLightPulseGreen(lsStripList, lsStripList[strip *2], teEvent, tmeCurrentTime);
                 break;
               }
-              case AnTavdPaAnimFrontClose:
+
+              case AnTaStripOverOff:
               {
-                vdPacificaishAnimationFrontClose(teEvent, strip, tmeCurrentTime);
+                vdStripOverOff(lsStripList, lsStripList[strip *2], teEvent, tmeCurrentTime);
                 break;
               }
+
+              case AnTavdPacificaish:
+              {
+                vdPacificaishAnimation(lsStripList, lsStripList[(strip *2) +1 ], teEvent, tmeCurrentTime);
+                break;
+              }
+
+              case AnTavdPaAnimClose:
+              {
+                vdPacificaishAnimationClose(lsStripList, lsStripList[(strip *2) +1 ], teEvent, tmeCurrentTime);
+                break;
+              }
+
+              case AnTavdPaAnimClose00:
+              {
+                vdPacificaishAnimationClose00(lsStripList, lsStripList[(strip *2) +1 ], teEvent, tmeCurrentTime);
+                break;
+              }
+
             } // End Case Animation Set
             break;
           } // End Case AnEvSchedule
 
-          case AnEvSetToEnd:
-          {
+          case AnEvSetToEnd:  // Schedules an animation to end. Fades out Fades and stops repeat on Pulses.
+          {                   // Possible problem if InTime is set to 0.  
             // Clear the Event whether the event ran or not.
-            teEvent[strip].teDATA[event].booCOMPLETE = true;
-     
-            // Is the Event we are processing within the event?
+            teEvent[strip].teDATA[event].booCOMPLETE = true;   
 
+            // Is the Event we are processing within the event?
             for (int eventscan = 0; eventscan < NUM_TIMED_EVENTS; eventscan++)
             {
 
-              if(teEvent[strip].teDATA[eventscan].tmeSTARTTIME < tmeCurrentTime)
+              if(teEvent[strip].teDATA[eventscan].tmeSTARTTIME <= tmeCurrentTime)   // May Have Fixed It.  IDK
               {
 
                 if (  ((teEvent[strip].teDATA[eventscan].intSTARTPOS >= teEvent[strip].teDATA[event].intSTARTPOS)  
@@ -1683,7 +1530,7 @@ void teGLOBAL(timed_event teEvent[], unsigned long tmeCurrentTime)
                         // For now, we will just kill it and hope another animation clears the artifacts.
                         // It would be nice to have a gracreful end and let the pixel end its animation,
                         // but, thats for another time.
-                        teEvent[strip].teDATA[eventscan].booCOMPLETE == true;
+                        teEvent[strip].teDATA[eventscan].booCOMPLETE = true;
                       }
 
                       // Pulse will end on its on at end of animation.
@@ -1691,12 +1538,11 @@ void teGLOBAL(timed_event teEvent[], unsigned long tmeCurrentTime)
                       {
                       } */
                     }
-
                   }
                 }
               }
-            }
-          break;
+            }        
+            break;
           } // End Case AnEvSetToEnd
         } // End Switch 
       } // End If time check
@@ -1708,67 +1554,147 @@ void teGLOBAL(timed_event teEvent[], unsigned long tmeCurrentTime)
 // -------------------------------------------------------------------------------------
 //  AuxLightControlModule
 
-boolean AuxLightControlModule(timed_event teEvent[], boolean booSensors[], boolean booIsOn, hardware_monitor hwmDoor[], unsigned long tmeCurrentTime)
+void DoorMonitorAndAnimationControlModule(led_strip lsStrips[], timed_event teEvent[], hardware_monitor hwmDoor[], boolean booSensors[], unsigned long tmeCurrentTime)
+// This routine is designed to scan all the doors or switches.  If anthing is open, opened 
+//  closed or closed (odd twist of english there) then set the appropriate or maintain
+//  animations.  
+// Works like this.  If any door is open then make sure the overhead lights are on.  
+//  If all the doors are closed, turn all the lights off.  Run door animations like 
+//  normal.
 {
-  int oncount = 0;
+  int opencount = 0;
+  int strip;
+  boolean changedetectted = false;
+
+  // Scan Through Doors and Check for Changes
+
+  // Check for newly opened and run animation on them.
   for (int door=0; door < NUM_SWITCHES; door++)
   {
-    if (booSensors[door] == true)
+    if (hwmDoor[door].changed(booSensors[door]) == true)
     {
-      oncount++;
-    }
-  }
-
-  // If off and needs to be on
-  if ((oncount > 0) && booIsOn == false)
-  {
-    for (int door=0; door < NUM_SWITCHES; door++)
-    {
-      if (hwmDoor[door].booVALUE == false)
+      changedetectted = true; 
+      if (hwmDoor[door].booVALUE)  // Door Just Opened
       {
-        if (door == 0)
+        // Start Open Door Animation on This Door
+        if (hwmDoor[door].ISHARDWARE == true)  // Only if its real switch (with lights attached to it)
         {
-          vdClearAllTimedEvent(teEvent, 0, s0Bs, s0Be);
-          vdPacificaishAnimationBack(teEvent, 0, tmeCurrentTime);
+          strip = door *2;
+
+          //Door Animation
+          // Clear Events On Door
+          vdClearAllTimedEvent(teEvent, door, lsStrips[strip].St, lsStrips[strip].Ed);
+          teEvent[door].set(tmeCurrentTime, 10, 0, 0, AnEvSchedule, AnTaDoorOpen00, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[strip].St, lsStrips[strip].Ed, false, true);
         }
-        if (door == 1)
+      }
+      else                        // Door Just Closed
+      {
+        if (hwmDoor[door].ISHARDWARE == true)  // Only if its real switch (with lights attached to it)
         {
-          vdClearAllTimedEvent(teEvent, 1, s1Bs, s1Be);
-          vdPacificaishAnimationFront(teEvent, 1, tmeCurrentTime);
+          strip = door *2;
+
+          // Start Close Door Animation on This Door
+          vdClearAllTimedEvent(teEvent, door, lsStrips[strip].St, lsStrips[strip].Ed);
+          // Pulse Clear All Animations
+          teEvent[door].set(tmeCurrentTime, 100, 0, 0, AnEvSchedule, AnTaChannelPulseGreen, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[strip].St, lsStrips[strip].Ed, false, true);
         }
       }
     }
-    return true;
   }
 
-  // If on and needs to be off
-  if ((oncount == 0) && (booIsOn == true))
+  // If a door was opened or close we need set the Overhead Lights.
+  if (changedetectted == true)
   {
+
+    // Count the amount of open doors
     for (int door=0; door < NUM_SWITCHES; door++)
     {
-      if (hwmDoor[door].booVALUE == false)
+      if (hwmDoor[door].booVALUE  == true)
       {
-        // Check recent changes
-        if (hwmDoor[door].tmeCHANGEDETECTEDTIME < (tmeCurrentTime - AUXDRLINGERBCK))
+        opencount = opencount  + 1;
+      }
+    }
+
+    if (opencount > 0)
+    {
+      // There are open Doors.  Make sure all Overheads are running 
+      for (int door=0; door < NUM_SWITCHES; door++)
+      {
+        strip = (door *2) +1; // Determine Strip from Door aka Channel
+        
+        if (hwmDoor[door].ISHARDWARE == true)  // Only if its real switch (with lights attached to it)
         {
-          if (door == 0)
+          if (lsStrips[strip].AnimationStatus != AnTavdPacificaish)
           {
-            teEvent[0].set(tmeCurrentTime, 0, 4000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
-            teEvent[0].set(tmeCurrentTime, 0, 15000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s0Bs, s0Be, false, true);
+            // Clear Events for the Overhead Animation
+            vdClearAllTimedEvent(teEvent, door, lsStrips[strip].St, lsStrips[strip].Ed);
+
+            // Start Overhead Animation.
+            lsStrips[strip].AnimationStatus = AnTavdPacificaish;
+            teEvent[door].set(tmeCurrentTime, 10, 0, 0, AnEvSchedule, AnTavdPacificaish, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[strip].St, lsStrips[strip].Ed, false, true);
           }
-          if (door == 1)
+        }
+      }      
+
+    }
+    else  // All doors are closed.  Make sure lights are off or turning off and Amber Up the newly closded doors.
+      {
+      for (int door=0; door < NUM_SWITCHES; door++)
+      {
+        strip = (door *2) +1; // Determine Strip from Door aka Channel
+
+        if (hwmDoor[door].ISHARDWARE == true)  // Only if its real switch (with lights attached to it)
+        {
+          if (lsStrips[strip].AnimationStatus == AnTavdPacificaish)
           {
-            teEvent[1].set(tmeCurrentTime, 1, 4000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
-            teEvent[1].set(tmeCurrentTime, 1, 15000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), s1Bs, s1Be, false, true);
+            
+            // Start Overhead Turn Off Animation.
+            // See when the door was closed
+            if ((tmeCurrentTime - hwmDoor[door].tmeTOGGLEDTIME) < 15000)
+            {
+              //  The door was recently closed. Run the Amber Pacifica on it.
+
+              vdClearAllTimedEvent(teEvent, door, lsStrips[strip].St, lsStrips[strip].Ed);
+
+              // This needs to be moved outside of this routine, int an animation event. 
+              lsStrips[strip].AnimationStatus = AnTavdPaAnimClose;  
+
+              int intTm;
+              int intDur;
+              int intSp;
+
+              //Restore the privouse Blue to fade out
+              intTm = 200; intDur = 6000; intSp = 5;
+              teEvent[door].set(tmeCurrentTime, intTm , intDur, intSp, AnEvSweep, AnPiPulse, CRGB(0, 0, 60), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[strip].Ed, lsStrips[strip].St, false, true);
+              teEvent[door].set(tmeCurrentTime, 10, 0, 0, AnEvSchedule, AnTavdPaAnimClose, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[strip].St, lsStrips[strip].Ed, false, true);
+            }
+            else
+            {
+              // The door was closed for a while, just turn off the lights.
+              // Start the Close Door Overhead Animation
+
+              // Clear Events for the Overhead Animation
+              vdClearAllTimedEvent(teEvent, door, lsStrips[strip].St, lsStrips[strip].Ed);
+
+              // Just turn off the lights.
+              lsStrips[strip].AnimationStatus = AnTaStripOverOff;
+              teEvent[door].set(tmeCurrentTime, 10, 0, 0, AnEvSchedule, AnTaStripOverOff, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[strip].St, lsStrips[strip].Ed, false, true);
+            }
           }
         }
       }
     }
-    return false;
   }
+
+  // *************************************************
+  //
+  //  This Section of code reserved for a routine 
+  //  to check for lights should be off.  After
+  //  ten minutes, manualy turn them off. 
+  //
+  // *************************************************
+
 }
-
-
 
 
 // ***************************************************************************************
@@ -1780,8 +1706,11 @@ boolean AuxLightControlModule(timed_event teEvent[], boolean booSensors[], boole
 CRGB hwLEDs0[NUM_LEDSs0];       // LED Strip 1 values.
 CRGB hwLEDs1[NUM_LEDSs1];       // LED Strip 2 values.
 
+// Define Led Strips
+led_strip lsStrips[4];
+
 // Light Strip Event System
-timed_event teEvent[NUM_STRIPS];
+timed_event teEvent[NUM_CHANNELS];
 
 // Door Sensor
 hardware_monitor hwDoors[NUM_SWITCHES];
@@ -1815,6 +1744,12 @@ void setup()
   FastLED.addLeds<LED_TYPE, DATA_PINs1, COLOR_ORDER>(hwLEDs1, NUM_LEDSs1).setCorrection(TypicalLEDStrip);
   LEDS.setBrightness(BRIGHTNESS);
 
+  // Define Light Strips
+  lsStrips[Back_Door].set(0, s0As, s0Ae); // Back Door
+  lsStrips[Back_Over].set(0, s0Bs, s0Be); // Back Overhead
+  lsStrips[Front_Door].set(1, s1As, s1Ae); // Front Door
+  lsStrips[Front_Over].set(1, s1Bs, s1Be); // Front Overhed
+
   // Define Door Sensors.
   pinMode(SWITCH_PINs0, INPUT_PULLUP);
   pinMode(SWITCH_PINs1, INPUT_PULLUP);
@@ -1828,10 +1763,10 @@ void setup()
   teEvent[1].create(NUM_LEDSs1);
 
   // Define Door Sensors.
-  hwDoors[0].set(SWITCH_PINs0, 50);
-  hwDoors[1].set(SWITCH_PINs1, 50);
-  hwDoors[2].set(SWITCH_PINs2, 50);
-  hwDoors[3].set(SWITCH_PINs3, 50);
+  hwDoors[0].set(SWITCH_PINs0, 50, true);
+  hwDoors[1].set(SWITCH_PINs1, 50, true);
+  hwDoors[2].set(SWITCH_PINs2, 50, false);
+  hwDoors[3].set(SWITCH_PINs3, 50, false);
 
   /*
     // Define Communications.
@@ -1848,13 +1783,13 @@ void setup()
     //Serial.begin(115200);
     //Serial.println("Program Start");
     //vdTESTFLASHAnimation(teEvent, 0, tmeCurrentMillis);
-    vdPowerOnAnimation(teEvent, 9, tmeCurrentMillis);
+    vdPowerOnAnimation(lsStrips, lsStrips[0], teEvent, tmeCurrentMillis);
   }
   else
   {
     // Boot Animation
     // Make sure we have the current time before we try any test animations.
-    vdPowerOnAnimation(teEvent, 9, tmeCurrentMillis);
+    vdPowerOnAnimation(lsStrips, lsStrips[0], teEvent, tmeCurrentMillis);
   }
 }
 
@@ -1891,57 +1826,15 @@ void loop()
     booSensors[2] = digitalRead(SWITCH_PINs2);
     booSensors[3] = digitalRead(SWITCH_PINs3);
 
-    // Check door 1 for changes.
-    // Back Door
-    if (hwDoors[0].changed(booSensors[0]))
-    {
-      if (booSensors[0] == HIGH)
-      {
-        vdClearAllTimedEvent(teEvent, 0, s0As, s0Be);
-        vdDoorOpenAnimationBack(teEvent, 0, tmeCurrentMillis); 
-        boAuxLightsIsOn = AuxLightControlModule(teEvent, booSensors, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
-      }
-      else
-      {
-        vdClearAllTimedEvent(teEvent, 0, s0As, s0Ae);
-        vdDoorCloseAnimationBack(teEvent, 0, tmeCurrentMillis);
-        //vdPacificaishAnimationCLOSETest(teEvent, 0, tmeCurrentMillis); 
-        boAuxLightsIsOn = AuxLightControlModule(teEvent, booSensors, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
-      }
-    }
 
-    // Check door 2 for changes.
-    // Front Door
-    if (hwDoors[1].changed(booSensors[1]))
-    {
-      if (booSensors[1] == HIGH)
-      {
-        vdClearAllTimedEvent(teEvent, 1, s1As, s1Be);
-        vdDoorOpenAnimationFront(teEvent, 1, tmeCurrentMillis);
-        boAuxLightsIsOn = AuxLightControlModule(teEvent, booSensors, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
-      }
-      else
-      {
-        vdClearAllTimedEvent(teEvent, 1, s1As, s1Ae);
-        vdDoorCloseAnimationFront(teEvent, 1, tmeCurrentMillis);
-        boAuxLightsIsOn = AuxLightControlModule(teEvent, booSensors, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
-      }
-    }
-
-    if (hwDoors[2].changed(booSensors[2]))
-    {
-      boAuxLightsIsOn = AuxLightControlModule(teEvent, booSensors, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
-    }
-
-    if (hwDoors[3].changed(booSensors[3]))
-    {
-      boAuxLightsIsOn = AuxLightControlModule(teEvent, booSensors, boAuxLightsIsOn, hwDoors, tmeCurrentMillis);
-    }
+    // Check the doors and start or end all animations
+    DoorMonitorAndAnimationControlModule(lsStrips, teEvent, hwDoors, booSensors, tmeCurrentMillis);
+    
 
     // --- Check and Execute Timed Events That Are Ready ---
 
     //  Timed Event ALL GLOBAL
-    teGLOBAL(teEvent, tmeCurrentMillis);
+    teSystem(lsStrips, teEvent, tmeCurrentMillis);
 
     //  Timed Event 0
     booUpdates0 = teEvent[0].execute(hwLEDs0, tmeCurrentMillis);
@@ -2001,7 +1894,7 @@ void loop()
   // Figure out what task needs to be done, and do it.
   switch (bytData[x])
   {
-    case AnTaAllOff:
+    case AnTaOff:
       {
         vdClearAllTimedEvent(teEvent, 0, hwLEDSTARTLs0);
       }

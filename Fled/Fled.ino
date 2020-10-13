@@ -57,9 +57,8 @@
 // *
 // ***************************************************************************************
 // *
-// *  V 0.57 _201007
-// *      - THIS CODE VERSION IS UNTESTEST.  Don't install it into a live environment 
-// *          because its untested on anything with more than one switch.
+// *  V 0.57 _201007b
+// *      - 0.57 _201007b - Small Correction with the channel 2 overhead not turning off.
 // *      - After the privous update failed to work, I gave up for a while.
 // *      - Classified and Typed the Strips for managment reasons.
 // *      - Started Consolidating the Animations to run independantly, disregarding their 
@@ -129,8 +128,6 @@
 #define s1Ae          65      // s1 A End
 #define s1Bs          66      // s1 B Start
 #define s1Be          117     // s1 B End
-
-
 
 /*
 // *** TEST BLOCK FOR DOOR AND OVERHEAD LIGHTS ***
@@ -1449,7 +1446,7 @@ void teSystem(led_strip lsStripList[], timed_event teEvent[], unsigned long tmeC
 
               case AnTaStripOverOff:
               {
-                vdStripOverOff(lsStripList, lsStripList[strip *2], teEvent, tmeCurrentTime);
+                vdStripOverOff(lsStripList, lsStripList[(strip *2) +1 ], teEvent, tmeCurrentTime);
                 break;
               }
 

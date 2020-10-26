@@ -133,3 +133,11 @@ AnPiPulseTo - Pulses to Color then back back to Color 2
                     !!!!! ?????? Colors will mismatch.
 
 
+Note:
+??????  - I don't know if this is working right.
+          This is untested.
+          I don't know why this is like this.
+
+!!!!!!  - This may work, but I doubt that the results will 
+            be appealing.
+          Maybe untested, non the less. 

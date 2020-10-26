@@ -15,26 +15,16 @@ The fourth goal will be to determine a way to easily configure all devices in it
 The F in FLED stands of Failed, as in I failed to receive backing for this project, and I failed to assemble a team to assist me with this. Because of this, the F can also stand for fiction, because at the time of writing this description, and having neither of those 2 things, that may be all this amounts to being. 
 
 
-## Pin Layout
-* #define DATA_PINs1    3       // A3 - Data Pin for Strip 1
-* #define DATA_PINs2    4       // A4 - Data Pin for Strip 2
-* //#define CLK_PIN     5       // If your LED_TYPE requires one.
 
-* #define SWITCH_PINs1  8       // A8 - Hardware Open Close Door Sensor 1
-* #define SWITCH_PINs2  9       // A9 - Hardware Open Close Door Sensor 1
+## Getting Started
+* [FLED wiki](https://github.com/briefnotion/Fled/wiki)
 
 
 
-## Setup
-Descriptions available in source code.  It's a mess but its accurate.  Message me if you can't figure it out.
+## Video Playlist
+I created several videos demonstrating the working code. Here is
+* [My FLED Playlist](https://www.youtube.com/playlist?list=PLaNcnWj05DSWdfasAjF31oveOzSs7lRmX)
 
-
-## Videos
-* [Starting My Arduino LED Light Project](https://youtu.be/ZQTVFHUM0x0)
-* [Midway Through My Arduino LED Light Project](https://youtu.be/VMVkNbT1Zmc)
-* [3/4 Way Through My Arduino LED Light Project](https://youtu.be/uyHPFmF1kd8)
-* [My Arduino LED Light Project](https://youtu.be/77BhkKuMwfI)
-* [I wish I was working on my Arduino project](https://youtu.be/8-Zm_CucWuM)
 
 
 ## Some background:
@@ -50,6 +40,3 @@ Anyway, enough of the sad stuff. I’ll tell you what I know. I will develop a m
 
 The truth is I have to fund the model myself, because that’s how the Federation works when you are alone. This Censor can’t pay for it because it doesn’t get money. It just wants to be useful to its society and not die in exchange.
 
-
-## Setup
-Descriptions available in source code.  It's a mess but its accurate.  Message me if you can't figure it out.

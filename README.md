@@ -17,6 +17,7 @@ The F in FLED stands of Failed, as in I failed to receive backing for this proje
 
 
 ## Getting Started
+Its probably best to go to the wiki first, considering its may be more up to date.
 * [FLED wiki](https://github.com/briefnotion/Fled/wiki)
 
 

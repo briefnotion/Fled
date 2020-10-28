@@ -64,6 +64,8 @@ AnPiFade - Simple, low processor use, fade on pixel color from start to end
     Duration    - Amout of time to change from start to end. 
     Start 1     - Start pixel Color 
     Dest 1      - Ending Pixel Color
+    Start 2     - Not Implemented
+    Dest 2      - Not Implemented
 
     Clear on End 
         False   - Keeps the animation running past its expired

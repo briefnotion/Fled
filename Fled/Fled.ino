@@ -59,7 +59,7 @@
 // *
 // *  V 0.59 _201103
 // *      - Built some Fall Season animations.
-// *      - Alpha.
+// *      - a. Forgot to remove test code.  All went to shit from there. 
 // *
 // *  V 0.58 _201014
 // *      - Suprisingly, the lights worked, as expected, on first install.  So...
@@ -144,13 +144,12 @@
 // -------------------------------------------------------------------------------------
 // Arduino LED data pins to transmit on off and colors for strip s0 and s1
 
-#define DATA_PINs0    4       // 3 // A3 - Data Pin for Strip 1
-#define DATA_PINs1    3       // 4 // A4 - Data Pin for Strip 2
+#define DATA_PINs0    3       // 3 // A3 - Data Pin for Strip 1
+#define DATA_PINs1    4       // 4 // A4 - Data Pin for Strip 2
 
 // -------------------------------------------------------------------------------------
 // LED Strip Setup
 
-/*
 // Door light strip
 #define NUM_LEDSs0    123     
 #define s0As          0       // s0 A Start
@@ -164,23 +163,6 @@
 #define s1Ae          65      // s1 A End
 #define s1Bs          66      // s1 B Start
 #define s1Be          117     // s1 B End
-*/
-
-
-// TESTING -- Condensed
-// Door light strip
-#define NUM_LEDSs0    123     
-#define s0As          0       // s0 A Start
-#define s0Ae          29      // s0 A End
-#define s0Bs          30      // s0 B Start
-#define s0Be          59     // s0 B End
-
-// Overhead light strip
-#define NUM_LEDSs1    118 
-#define s1As          0       // s1 A Start
-#define s1Ae          30      // s1 A End
-#define s1Bs          31      // s1 B Start
-#define s1Be          60     // s1 B End
 
 
 // -------------------------------------------------------------------------------------

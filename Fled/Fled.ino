@@ -60,6 +60,8 @@
 // *  V 0.59 _201103
 // *      - Built some Fall Season animations.
 // *      - a. Forgot to remove test code.  All went to shit from there. 
+// *            Running into timestamp and GitHub desync errors. 
+// *            Devkit SDK is not saving or losing files and edits.
 // *
 // *  V 0.58 _201014
 // *      - Suprisingly, the lights worked, as expected, on first install.  So...

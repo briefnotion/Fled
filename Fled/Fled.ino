@@ -58,7 +58,8 @@
 // ***************************************************************************************
 // *
 // *  V 0.59 _201103
-// *      - Built some Fall Season animations. Alpha.
+// *      - Built some Fall Season animations.
+// *      - Alpha.
 // *
 // *  V 0.58 _201014
 // *      - Suprisingly, the lights worked, as expected, on first install.  So...

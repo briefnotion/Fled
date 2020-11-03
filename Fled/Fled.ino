@@ -62,6 +62,8 @@
 // *      - a. Forgot to remove test code.  All went to shit from there. 
 // *            Running into timestamp and GitHub desync errors. 
 // *            Devkit SDK is not saving or losing files and edits.
+// *            Crossed a positive and negative power. Thankfully, its so low powered, its
+// *            didn't even pop a fuse.  Wire got warm though, thats how I knew. 
 // *
 // *  V 0.58 _201014
 // *      - Suprisingly, the lights worked, as expected, on first install.  So...

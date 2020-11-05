@@ -157,7 +157,6 @@
 // -------------------------------------------------------------------------------------
 // LED Strip Setup
 
-/*
 // Door light strip
 #define NUM_LEDSs0    123     
 #define s0As          0       // s0 A Start
@@ -171,22 +170,7 @@
 #define s1Ae          65      // s1 A End
 #define s1Bs          66      // s1 B Start
 #define s1Be          117     // s1 B End
-*/
 
-// TEST Condensed
-// Door light strip
-#define NUM_LEDSs0    123     
-#define s0As          0       // s0 A Start
-#define s0Ae          29      // s0 A End
-#define s0Bs          30      // s0 B Start
-#define s0Be          60     // s0 B End
-
-// Overhead light strip
-#define NUM_LEDSs1    118 
-#define s1As          0      // s1 A Start
-#define s1Ae          29      // s1 A End
-#define s1Bs          30      // s1 B Start
-#define s1Be          60     // s1 B End
 
 // -------------------------------------------------------------------------------------
 // Arduino switch pin for doors and switches
@@ -2522,12 +2506,6 @@ void loop()
     booSensors[1] = digitalRead(SWITCH_PINs1);
     booSensors[2] = digitalRead(SWITCH_PINs2);
     booSensors[3] = digitalRead(SWITCH_PINs3);
-
-    // TEST
-    booSensors[0] = digitalRead(SWITCH_PINs0);
-    booSensors[1] = false;
-    booSensors[2] = false;
-    booSensors[3] = false;
 
     // Check the doors and start or end all animations
     DoorMonitorAndAnimationControlModule(lsStrips, teEvent, hwDoors, booSensors, tmeCurrentMillis);

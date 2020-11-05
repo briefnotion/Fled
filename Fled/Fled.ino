@@ -9,7 +9,7 @@
 // *                                                      (c) 2856 - 2857 Core Dynamics
 // ***************************************************************************************
 // *
-// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.59
+// *  PROJECTID: gi6$b*E>*q%;    Revision: 00000000.60
 // *  TEST CODE:                 QACODE: A565              CENSORCODE: EQK6}Lc`:Eg>
 // *
 // ***************************************************************************************
@@ -56,6 +56,9 @@
 // *    https://github.com/briefnotion/Fled/blob/master/Description%20and%20Background.txt
 // *
 // ***************************************************************************************
+// *
+// * V 0.60 _201105
+// *      - I didn't like the way it looked.  So, cha-cha-cha-changes. 
 // *
 // *  V 0.59 _201103
 // *      - Built some Fall Season animations.
@@ -154,6 +157,7 @@
 // -------------------------------------------------------------------------------------
 // LED Strip Setup
 
+/*
 // Door light strip
 #define NUM_LEDSs0    123     
 #define s0As          0       // s0 A Start
@@ -167,7 +171,22 @@
 #define s1Ae          65      // s1 A End
 #define s1Bs          66      // s1 B Start
 #define s1Be          117     // s1 B End
+*/
 
+// TEST Condensed
+// Door light strip
+#define NUM_LEDSs0    123     
+#define s0As          0       // s0 A Start
+#define s0Ae          29      // s0 A End
+#define s0Bs          30      // s0 B Start
+#define s0Be          60     // s0 B End
+
+// Overhead light strip
+#define NUM_LEDSs1    118 
+#define s1As          0      // s1 A Start
+#define s1Ae          29      // s1 A End
+#define s1Bs          30      // s1 B Start
+#define s1Be          60     // s1 B End
 
 // -------------------------------------------------------------------------------------
 // Arduino switch pin for doors and switches
@@ -1163,13 +1182,27 @@ void vdCloseDoorThanks(led_strip lsStrips[], int intStripID, timed_event teEvent
 void vdCloseOverThanks(led_strip lsStrips[], int intStripID, timed_event teEvent[], unsigned long tmeCurrentTime)
 // AnTavdCloseOverThanks
 {
-  teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 10, 0, 0, AnEvSchedule, AnTaStripOverOffThanks, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[intStripID].St, lsStrips[intStripID].Ed, false, true);
+  //teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 10, 0, 0, AnEvSchedule, AnTaStripOverOffThanks, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[intStripID].St, lsStrips[intStripID].Ed, false, true);
+  teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 100, 0, 0, AnEvSchedule, AnTaChannelPulseColor, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[intStripID].St, lsStrips[intStripID].Ed, false, true);
 }
 
 void vdCloseOverThanksCo(led_strip lsStrips[], int intStripID, timed_event teEvent[], unsigned long tmeCurrentTime)
 // AnTavdCloseOverThanksCo
 {
   teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 10, 0, 0, AnEvSchedule, AnTavdNightSkyClose, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[intStripID].St, lsStrips[intStripID].Ed, false, true);
+}
+
+void vdAddOpenThanks(led_strip lsStrips[], int intStripID, timed_event teEvent[], unsigned long tmeCurrentTime)
+// AnTavd----  // Simple
+{
+  teEvent[lsStrips[intStripID +1].Cl].set(tmeCurrentTime, 4000, 1000, 40, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(125,125,0), lsStrips[intStripID +1].St, lsStrips[intStripID +1].Ed, false, false);
+}
+
+void vdAddCloseThanks(led_strip lsStrips[], int intStripID, timed_event teEvent[], unsigned long tmeCurrentTime)
+// AnTavd----  // Simple
+{
+  teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 4000, 1000, 40, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(0, 0, 30), CRGB(0, 0, 0), CRGB(0, 0, 30), lsStrips[intStripID].St, lsStrips[intStripID].Ed, false, false);
+  teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(10000), intRandomHD(125), AnEvSweep, AnPiPulse, CRGB(30, 30, 30), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[intStripID].St, lsStrips[intStripID].Ed, true, true);
 }
 
 // -------------------------------------------------------------------------------------
@@ -1787,7 +1820,7 @@ void vdNightSkyClose(led_strip lsStrips[], int intStripID, timed_event teEvent[]
   //teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, AUXDRLINGERBCK + 2000, 0, 0, AnEvClearRunning, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[intStripID].St, lsStrips[intStripID].Ed, false, false);
 
   // Schedule Animations to Fade Out
-  teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, AUXDRLINGERBCK + 1000, 3000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[intStripID].St, lsStrips[intStripID].Ed, false, false);
+  teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, AUXDRLINGERBCK + 1000, 3000, 0, AnEvSetToEnd, 0, CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[intStripID -1 ].St, lsStrips[intStripID].Ed, false, false);
 
   //Restore the privouse Color to fade out
   intTm = 200; intDur = 6000; intSp = 5;
@@ -1805,6 +1838,14 @@ void vdNightSky(led_strip lsStrips[], int intStripID, timed_event teEvent[], uns
   // Swap sweep start and end, depending on front or back.
   int start;
   int end;
+
+  CRGB Sun = CRGB(130, 130, 0);
+  CRGB Set1 = CRGB(40, 10, 5);
+  CRGB Set2 = CRGB(20, 5, 0);
+  CRGB Set3 = CRGB(10, 2, 0);
+  CRGB Set4 = CRGB(0, 0, 5);
+  CRGB Set5 = CRGB(10, 10, 10);
+
   if (lsStrips[intStripID].Cl == 0)
   {
     // Back Door Light Strip
@@ -1812,9 +1853,9 @@ void vdNightSky(led_strip lsStrips[], int intStripID, timed_event teEvent[], uns
     end = lsStrips[intStripID].Ed;
       
     // Set the background color.
-    teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 1000, 8000, 20, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(1, 0, 5), CRGB(0, 0, 0), CRGB(0, 0, 0), start, end -25, false, false);
-    teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 1000, 8000, 20, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(1, 0, 5), CRGB(0, 0, 0), CRGB(40, 10, 0), end -24, end -6, false, false);
-    teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 1000, 8000, 20, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(130, 130, 0), CRGB(0, 0, 0), CRGB(130, 130, 0), end -6, end, false, false);
+    teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 1000, 8000, 20, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), Set3, CRGB(0, 0, 0), Set2, start, end -25, false, false);
+    teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 1000, 8000, 20, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), Set2, CRGB(0, 0, 0), Set1, end -24, end -6, false, false);
+    teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 1000, 8000, 20, AnEvSweep, AnPiFade, CRGB(0, 0, 0), Sun, CRGB(0, 0, 0), Sun, end -6, end, false, false);
   }
   else
   {
@@ -1822,8 +1863,8 @@ void vdNightSky(led_strip lsStrips[], int intStripID, timed_event teEvent[], uns
     start = lsStrips[intStripID].Ed;
     end = lsStrips[intStripID].St;
 
-    teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 1000, 5000, 20, AnEvSweep, AnPiFade, CRGB(0, 0, 0), CRGB(1, 0, 5), CRGB(0, 0, 0), CRGB(0, 0, 0), start, end + 15, false, false);
-    teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 1000, 5000, 20, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), CRGB(1, 0, 5), CRGB(0, 0, 0), CRGB(10, 10, 10), end + 14, end, false, false);
+    teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 1000, 5000, 20, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), Set3, CRGB(0, 0, 0), Set4, start, end + 15, false, false);
+    teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 1000, 5000, 20, AnEvSweep, AnPiFadeDith, CRGB(0, 0, 0), Set4, CRGB(0, 0, 0), Set5, end + 14, end, false, false);
   }
 
 }
@@ -2281,6 +2322,19 @@ void DoorMonitorAndAnimationControlModule(led_strip lsStrips[], timed_event teEv
             //vdOpenOverNormal(lsStrips,strip,teEvent,tmeCurrentTime);
             vdOpenOverThanks(lsStrips,strip,teEvent,tmeCurrentTime);
           }
+
+          // also, run additional animations based on whether or not the door is open.
+
+          // Door is open 
+          if (hwmDoor[door].booVALUE == true)
+          {
+            vdAddOpenThanks(lsStrips,strip - 1,teEvent,tmeCurrentTime);
+          }
+          else  // Door is closed.
+          {
+            vdAddCloseThanks(lsStrips,strip - 1,teEvent,tmeCurrentTime);
+          }
+          
         }
       }      
     }
@@ -2316,6 +2370,7 @@ void DoorMonitorAndAnimationControlModule(led_strip lsStrips[], timed_event teEv
 
               // Clear Events for the Overhead Animation
               vdClearAllTimedEvent(teEvent, door, lsStrips[strip].St, lsStrips[strip].Ed);
+              vdClearAllTimedEvent(teEvent, door, lsStrips[strip-1].St, lsStrips[strip-1].Ed);
 
               // Just turn off the lights.
               lsStrips[strip].AnimationStatus = CloseOver;
@@ -2467,6 +2522,12 @@ void loop()
     booSensors[1] = digitalRead(SWITCH_PINs1);
     booSensors[2] = digitalRead(SWITCH_PINs2);
     booSensors[3] = digitalRead(SWITCH_PINs3);
+
+    // TEST
+    booSensors[0] = digitalRead(SWITCH_PINs0);
+    booSensors[1] = false;
+    booSensors[2] = false;
+    booSensors[3] = false;
 
     // Check the doors and start or end all animations
     DoorMonitorAndAnimationControlModule(lsStrips, teEvent, hwDoors, booSensors, tmeCurrentMillis);

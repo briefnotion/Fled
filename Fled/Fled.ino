@@ -57,6 +57,9 @@
 // *
 // ***************************************************************************************
 // *
+// * V 0.61a _201108 -201127
+// *      - Sparkle Animations taking too much processing power.  Toned it down.
+// *
 // * V 0.61 _201108 -201127
 // *      - Christmas Edition.
 // *      - This is the beta install.  If no updates are made soon after, then it is 
@@ -2149,7 +2152,7 @@ void vdChristmasTree(led_strip lsStrips[], int intStripID, timed_event teEvent[]
   teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 500, 2000, 100, AnEvSweep, AnPiFadeDith, false, CRGB(0, 0, 0), CRGB(0, 45, 20), CRGB(0, 0, 0), CRGB(0, 9, 4), bot, top, false, false);
 
   // The Lights.
-  teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 3000, 15000, 0, AnEvSweep, AnPiTwinkle, false, CRGB(200, 0, 0), CRGB(0, 200, 0), CRGB(0, 0, 200), CRGB(2, 75, 3), lsStrips[intStripID].St +26, lsStrips[intStripID].Ed -26, true, false);
+  teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 3000, 15000, 0, AnEvSweep, AnPiTwinkle, false, CRGB(200, 0, 0), CRGB(0, 200, 0), CRGB(0, 0, 200), CRGB(2, 75, 3), lsStrips[intStripID].St +6, lsStrips[intStripID].Ed -6, true, false);
 
   // Variance
   teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(10000), intRandomHD(500), AnEvSweep, AnPiPulse, true, CRGB(20, 20, 20), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), bot, top, true, true);
@@ -2199,9 +2202,9 @@ void vdChristmasTreeCo(led_strip lsStrips[], int intStripID, timed_event teEvent
   teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 500, 10000, 0, AnEvSweep, AnPiFadeDith, false, CRGB(0, 45, 20), CRGB(0, 0, 0), CRGB(0, 9, 4),CRGB(0, 0, 0),  bot, top, false, false);
 
   // The Lights.
-  teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 500, 15000, 0, AnEvSweep, AnPiTwinkle, false, CRGB(200, 0, 0), CRGB(0, 200, 0), CRGB(0, 0, 200), CRGB(2, 75, 3), lsStrips[intStripID].St +26, lsStrips[intStripID].Ed -26, false, false);
+  teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 500, 15000, 0, AnEvSweep, AnPiTwinkle, false, CRGB(200, 0, 0), CRGB(0, 200, 0), CRGB(0, 0, 200), CRGB(2, 75, 3), lsStrips[intStripID].St +6, lsStrips[intStripID].Ed -6, false, false);
   // with Sparkle
-  teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 500, 5500, 0, AnEvSweep, AnPiTwinkle, false, CRGB(128, 128, 128), CRGB(64, 0, 64), CRGB(0, 64, 64), CRGB(2, 95, 1), lsStrips[intStripID].St +20, lsStrips[intStripID].Ed -20, true, false);
+  teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 500, 5500, 0, AnEvSweep, AnPiTwinkle, false, CRGB(128, 128, 128), CRGB(64, 0, 64), CRGB(0, 64, 64), CRGB(2, 95, 1), lsStrips[intStripID].St +6, lsStrips[intStripID].Ed -6, true, false);
 }
 
 // -------------------------------------------------------------------------------------
@@ -2272,7 +2275,7 @@ void vdDoorOpenAnimation02Christmas(led_strip lsStrips[], int intStripID, timed_
   teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, intTm, intDur, intSp, AnEvSweep, AnPiPulse, false, CRGB(255, 255, 0), CRGB(255, 255, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[intStripID].Ed, lsStrips[intStripID].Ed - intMid, true, true);
 
   // Sparkle
-  teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 500, 5500, 0, AnEvSweep, AnPiTwinkle, false, CRGB(128, 128, 128), CRGB(64, 0, 64), CRGB(0, 64, 64), CRGB(2, 95, 1), lsStrips[intStripID].St +20, lsStrips[intStripID].Ed -20, true, false);
+  //teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 500, 5500, 0, AnEvSweep, AnPiTwinkle, false, CRGB(128, 128, 128), CRGB(64, 0, 64), CRGB(0, 64, 64), CRGB(2, 95, 1), lsStrips[intStripID].St +20, lsStrips[intStripID].Ed -20, true, false);
 }
 
 void vdAddOpenChristm(led_strip lsStrips[], int intStripID, timed_event teEvent[], unsigned long tmeCurrentTime)
@@ -2312,7 +2315,7 @@ void vdAddCloseChristm(led_strip lsStrips[], int intStripID, timed_event teEvent
   teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 500, 2000, 100, AnEvSweep, AnPiFadeDith, false, CRGB(0, 0, 0), CRGB(0, 45, 20), CRGB(0, 0, 0), CRGB(0, 9, 4), lsStrips[intStripID].St, lsStrips[intStripID].Ed, false, false);
 
   // The Lights.
-  teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 3000, 15000, 0, AnEvSweep, AnPiTwinkle, false, CRGB(200, 0, 0), CRGB(0, 200, 0), CRGB(0, 0, 200), CRGB(2, 75, 3), lsStrips[intStripID].St +20, lsStrips[intStripID].Ed -20, true, false);
+  //teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, 3000, 15000, 0, AnEvSweep, AnPiTwinkle, false, CRGB(200, 0, 0), CRGB(0, 200, 0), CRGB(0, 0, 200), CRGB(2, 75, 3), lsStrips[intStripID].St , lsStrips[intStripID].Ed, true, false);
   
   // Variance
   teEvent[lsStrips[intStripID].Cl].set(tmeCurrentTime, intRandomHD(2000), intRandomHD(10000), intRandomHD(500), AnEvSweep, AnPiPulse, true, CRGB(20, 20, 20), CRGB(0, 0, 0), CRGB(0, 0, 0), CRGB(0, 0, 0), lsStrips[intStripID].St, lsStrips[intStripID].Ed, true, true);
